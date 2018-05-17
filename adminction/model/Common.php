@@ -18,7 +18,7 @@ class Common extends Model
 
         'hostname' => '127.0.0.1',
 
-        'database' => 'tp55',
+        'database' => 'tp5',
 
         'username' => 'root',
 
@@ -78,7 +78,8 @@ class Common extends Model
         $condition['order'] && ($modelObj->order($condition['order']));
 
         //首先记录最后一条sql
-        $countSql = preg_replace("/SELECT (\S+) FROM/", "SELECT count(*) as count FROM", $modelObj->getLastSql());
+        //$countSql = preg_replace("/SELECT(.*)FROM/", "SELECT count(*) AS count FROM", $modelObj->getLastSql());
+
         //分页数据
         if($condition['nowPage'] && $condition['perPage']){
             $modelObj->page($condition['nowPage'].','.$condition['perPage']);
@@ -86,15 +87,14 @@ class Common extends Model
 
         //最终查询
         $data = $modelObj->select();
-        //dump($countSql);die;
-        if($countSql == ""){
-            $countSql = preg_replace("/SELECT \* FROM/", "SELECT count(*) as count FROM", $modelObj->getLastSql());
+        //最后一条语句
+        $lastSql = $modelObj->getLastSql();
+        $lastSql = preg_replace("/^SELECT(.*)FROM/", "SELECT count(*) AS count FROM", $lastSql);
+        if($condition['nowPage'] && $condition['perPage']){
+            dump($lastSql);die;
         }
-        //dump($countSql);die;
         //查询数量
-        $count = $modelObj->query($countSql)[0]['count'];
-        //dump($condition['where']);
-        //echo $modelObj->getLastSql();die;
+        $count = $modelObj->query($lastSql);
         return ['data'=>$data,'total'=>$count,'nowPage'=>$condition['nowPage'],'perPage'=>$condition['perPage']];
     }
 

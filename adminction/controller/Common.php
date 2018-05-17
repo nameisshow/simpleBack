@@ -73,16 +73,14 @@ class Common extends Controller
     //获取用户信息
     public function getUserInfo()
     {
-        $sysModel = $this->systemModel;
-        $userInfo = $sysModel->getUserInfo();
-        $this->assign('userInfo',$userInfo);
+        $userInfo = $this->systemModel->getUserInfo();
+        $this->assign('adminInfo',$userInfo);
     }
 
     //获取用户菜单信息
     public function getMenu()
     {
-        $sysModel = $this->systemModel;
-        $menu = $sysModel->getMenu();
+        $menu = $this->systemModel->getMenu();
         $this->assign('topMenu',$menu['topMenu']);
         $this->assign('leftMenu',$menu['leftMenu']);
     }
@@ -90,9 +88,8 @@ class Common extends Controller
     //获取用户按钮信息
     public function getButton()
     {
-        $sysModel = $this->systemModel;
         $module_url = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-        $button = $sysModel->getButton($module_url);
+        $button = $this->systemModel->getButton($module_url);
         $this->assign('button',$button);
     }
 

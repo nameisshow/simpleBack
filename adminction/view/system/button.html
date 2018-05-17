@@ -47,21 +47,21 @@
         <!--分割线-->
         <hr>
         <!--数据集-->
-        <table lay-filter="dataSet" class="dataSet" lay-data="{id:'dataSet'}">
+        <table>
             <thead>
                 <tr>
-                    <td lay-data="{type:'checkbox',width:80}"></td>
-                    <td lay-data="{field:'button_id',sort:true}">按钮id</td>
-                    <td lay-data="{field:'button_name'}">按钮名</td>
-                    <td lay-data="{field:'button_event'}">按钮事件</td>
-                    <td lay-data="{field:'button_type'}">按钮类型</td>
-                    <td lay-data="{field:'button_sort',sort:true}">按钮排序</td>
-                    <td lay-data="{field:'button_desc'}">按钮描述</td>
+                    <td></td>
+                    <td>按钮id</td>
+                    <td>按钮名</td>
+                    <td>按钮事件</td>
+                    <td>按钮类型</td>
+                    <td>按钮排序</td>
+                    <td>按钮描述</td>
                 </tr>
             </thead>
             <tbody>
             {volist name='data' id='v'}
-                <tr data-id="{$v.button_id}">
+                <tr id="{$v.button_id}">
                     <td><input type="checkbox" lay-skin="primary"></td>
                     <td>{$v.button_id}</td>
                     <td>{$v.button_name}</td>

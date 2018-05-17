@@ -16,49 +16,16 @@ use think\Session;
 
 class System extends Common
 {
-    protected $connection = [
 
-        'type' => 'mysql',
+    static $cache = true;
 
-        'hostname' => '127.0.0.1',
-
-        'database' => 'tp5',
-
-        'username' => 'root',
-
-        'password' => 'root',
-
-        'charset' => 'utf8',
-
-        'prefix' => 'tp_',
-
-        'debug' => true,
-    ];
-
-    protected $redis;
-
+    private $user_id;
 
 
     public function __construct()
     {
         parent::__construct();
-        $this->createRedis();
-    }
-
-    private function createRedis()
-    {
-        //$config = [
-        //    'host'       => '47.94.251.11',
-        //    'port'       => 6379,
-        //    'password'   => 'zhangbo',
-        //    'select'     => 0,
-        //    'timeout'    => 0,
-        //    'expire'     => 0,
-        //    'persistent' => false,
-        //    'prefix'     => '',
-        //];
-        $config = \think\Config::get('redis');
-        $this->redis = new Redis($config);
+        $this->user_id = session('user_id');
     }
 
     /**
@@ -68,20 +35,13 @@ class System extends Common
     public function getUserInfo()
     {
 
-        $user_id = Session::get('user_id');
-        $redisKey = $user_id.'_userInfo';
-
-        if($this->redis->has($redisKey)){
-            return $this->redis->get($redisKey);
-        }
-
-
-        $userInfo = Db::name('user')
-            ->where('user_id',$user_id)
+        $userInfo = Db::name('admin')
+            ->where('user_id',$this->user_id)
             ->field('user_id,username,relaname,mobile,login_count,last_ip,last_time')
+            ->cache(self::$cache)
             ->find();
         $userInfo['last_time'] = date('Y-m-d H:i:s',$userInfo['last_time']);
-        $this->redis->set($redisKey,$userInfo);
+
         return $userInfo;
     }
 
@@ -91,29 +51,23 @@ class System extends Common
      */
     public function getMenu()
     {
-
-        //取得用户id
-        $user_id = Session::get('user_id');
-        $redisKey = $user_id.'_menu';
-        //if($this->redis->has($redisKey)){
-        //    return $this->redis->get($redisKey);
-        //}
-
         //获取本链接对应的顶级模块id
         //$selfModuleId = $this->getBaseModuleId();
 
         //获取模块id和按钮字符串
         $button_json = Db::name('role')
             ->alias('r')
-            ->join('tp_user u ','r.role_id = u.role_id')
-            ->where('u.user_id',$user_id)
+            ->join('tp_admin u ','r.role_id = u.role_id')
+            ->where('u.user_id',$this->user_id)
             ->field('r.button_json as bj,r.module_id as mi')
+            ->cache(self::$cache)
             ->find();
         //菜单数组
         $menuArray = Db::name('module')
             ->where('module_id','in',$button_json['mi'])
             ->order('module_sort asc')
             ->field('module_id,module_code,module_pid,module_name,module_url')
+            ->cache(self::$cache)
             ->select();
         //顶部菜单
         $topMenu = array();
@@ -144,6 +98,7 @@ class System extends Common
             $buttonArray[$key] = Db::name('button')
                 ->where('button_id','in',$idStr)
                 ->field('button_id,button_name,button_event')
+                ->cache(self::$cache)
                 ->select();
 
         }
@@ -169,8 +124,6 @@ class System extends Common
         }
 
         $menu = array('topMenu'=>$topMenu,'leftMenu'=>$leftMenu);
-
-        $this->redis->set($redisKey,$menu);
 
         return $menu;
     }
@@ -239,6 +192,7 @@ class System extends Common
     {
         foreach($topMenu as $key=>$val){
             $topMenu[$key]['module_url'] = ADMIN_URL.Db::name('module')
+                            ->cache(self::$cache)
                             ->field('module_url')
                             ->where('module_code','like','%'.$val['module_id'].'%')
                             ->where('module_url','neq','')
@@ -256,27 +210,24 @@ class System extends Common
             return [];
         }
 
-        //取得用户id
-        $user_id = Session::get('user_id');
-        $redisKey = $user_id.'_'.$module_url.'_button';
-        if($this->redis->has($redisKey)){
-            return $this->redis->get($redisKey);
-        }
 
         $module_id = Db::name('module')
             ->where('module_url',$module_url)
             ->field('module_id')
+            ->cache(self::$cache)
             ->find()['module_id'];
         if(!$module_id){
             return [];
         }
-        $button_json = Db::name('user')
+        $button_json = Db::name('admin')
             ->alias('u')
             ->join('tp_role r','u.role_id = r.role_id')
-            ->where('user_id',$user_id)
+            ->where('u.user_id',$this->user_id)
             ->field('r.button_json as bj')
+            ->cache(self::$cache)
             ->find();
         $buttonIds = '';
+
         foreach(json_decode($button_json['bj'],true) as $key=>$val){
             if($key == $module_id){
                 foreach($val as $k=>$v){
@@ -289,6 +240,7 @@ class System extends Common
             ->where('button_id','in',substr($buttonIds,0,-1))
             ->field('button_id,button_event,button_name,button_type')
             ->order('button_sort asc')
+            ->cache(self::$cache)
             ->select();
 
         if($buttonArray){
@@ -307,10 +259,6 @@ class System extends Common
             }
         }
 
-
-
-        $this->redis->set($redisKey,$buttonArray);
-
         return $buttonArray;
     }
 
@@ -328,6 +276,7 @@ class System extends Common
     {
         static $newCode = '';
         $pid = Db::name('module')
+            ->cache(self::$cache)
             ->where('module_id',$module_pid)
             ->field('module_id,module_pid')
             ->find();
@@ -365,6 +314,7 @@ class System extends Common
             $module_code = $this->createModuleCode($insertId,$data['module_pid']);
             //修改表module_code
             Db::name($table)
+                ->cache(self::$cache)
                 ->where('module_id',$insertId)
                 ->update(['module_code'=>$module_code]);
             //提交事务
@@ -403,6 +353,7 @@ class System extends Common
         }
         //dump($data);die;
         $result = Db::name($table)
+            ->cache(self::$cache)
             ->where($where)
             ->update($data);
 
