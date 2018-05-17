@@ -1,0 +1,7 @@
+<td>
+    <div class="layui-btn-group" id="opearGroup">
+        {volist name='button' id='v'}
+        <button class="layui-btn layui-btn-normal" data-name="{$v.button_name}" data-event="{$v.button_event}" data-url="{$v.button_url}" data-type="{$v.button_type}">{$v.button_name}</button>
+        {/volist}
+    </div>
+</td>

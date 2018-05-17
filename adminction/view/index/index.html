@@ -1,0 +1,23 @@
+<!--加载头部-->
+{include file='/public/nav' /}
+
+<!--<div class="layui-body">-->
+    <!--&lt;!&ndash; 内容主体区域 &ndash;&gt;-->
+    <!--<div style="padding: 15px;">内容主体区域</div>-->
+<!--</div>-->
+
+<div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div style="padding: 15px;">您好<b>{$userInfo.username}</b>，欢迎您登陆XX后台管理系统</div>
+</div>
+
+<!--加载底部-->
+{include file='/public/footer' /}
+
+<!--js代码-->
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script>
+layui.config({
+    base: '__STATIC__/admin/js/' //你存放新模块的目录，注意，不是layui的模块目录
+}).use('project'); //加载入口
+</script>

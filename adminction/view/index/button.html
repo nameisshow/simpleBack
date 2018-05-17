@@ -1,0 +1,92 @@
+<!--加载头部-->
+{include file='/public/nav' /}
+
+<!--<div class="layui-body">-->
+    <!--&lt;!&ndash; 内容主体区域 &ndash;&gt;-->
+    <!--<div style="padding: 15px;">内容主体区域</div>-->
+<!--</div>-->
+
+<div class="layui-body mycontainer">
+    <!-- 内容主体区域 -->
+    <!--百分百适配-->
+    <div class="layui-fluid">
+        <!--位置显示-面包屑导航-->
+        <div class="layui-row layui-bg-gray button_nav">
+            <span><b>位置：</b></span>
+            <span class="layui-breadcrumb">
+                  <a href="javascript:void(0)">系统管理</a>
+                  <a href="javascript:void(0)">权限管理</a>
+                  <a href="javascript:void(0)"><cite>按钮管理</cite></a>
+            </span>
+        </div>
+        <!--操作栏-->
+        <table class="layui-table button_opear" lay-skin="line">
+            <tr>
+                <!--加载按钮-->
+                {include file='/public/button' /}
+                <td>
+                    <form class="layui-form" action="/admin.php/Index/button" method="get">
+                        <div class="layui-form-item">
+                            <div class="layui-input-inline">
+                                <input type="text" name="button_name" value="{if condition='$where.button_name'}{$where.button_name}{/if}" lay-verify="required" placeholder="请输入按钮名" autocomplete="off" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline">
+                                <input type="text" name="button_event" value="{if condition='$where.button_event'}{$where.button_event}{/if}" lay-verify="required" placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline">
+                                <input type="text" name="button_type" value="{if condition='$where.button_type'}{$where.button_type}{/if}" lay-verify="required" placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
+                            </div>
+                            <div class="layui-input-inline">
+                                <button class="layui-btn">搜索</button>
+                            </div>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+        </table>
+        <!--分割线-->
+        <hr>
+        <!--数据集-->
+        <table lay-filter="dataSet" class="dataSet" lay-data="{id:'dataSet'}">
+            <thead>
+                <tr>
+                    <td lay-data="{type:'checkbox',width:80}"></td>
+                    <td lay-data="{field:'button_id',sort:true}">按钮id</td>
+                    <td lay-data="{field:'button_name'}">按钮名</td>
+                    <td lay-data="{field:'button_event'}">按钮事件</td>
+                    <td lay-data="{field:'button_type'}">按钮类型</td>
+                    <td lay-data="{field:'button_sort',sort:true}">按钮排序</td>
+                    <td lay-data="{field:'button_desc'}">按钮描述</td>
+                </tr>
+            </thead>
+            <tbody>
+            {volist name='data' id='v'}
+                <tr data-id="{$v.button_id}">
+                    <td><input type="checkbox" lay-skin="primary"></td>
+                    <td>{$v.button_id}</td>
+                    <td>{$v.button_name}</td>
+                    <td>{$v.button_event}</td>
+                    <td>{$v.button_type}</td>
+                    <td>{$v.button_sort}</td>
+                    <td>{$v.button_desc}</td>
+                </tr>
+            {/volist}
+            </tbody>
+        </table>
+        <!--分割线-->
+        <hr>
+        <!--分页-->
+        {include file='/public/page' /}
+    </div>
+</div>
+
+<!--加载底部-->
+{include file='/public/footer' /}
+
+<!--js代码-->
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
+<script src="__PUBLIC__/admin/js/project.js"></script>
+<script>
+
+</script>

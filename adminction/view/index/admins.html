@@ -1,0 +1,80 @@
+<!--加载头部-->
+{include file='/public/nav' /}
+
+<!--<div class="layui-body">-->
+    <!--&lt;!&ndash; 内容主体区域 &ndash;&gt;-->
+    <!--<div style="padding: 15px;">内容主体区域</div>-->
+<!--</div>-->
+
+<div class="layui-body mycontainer">
+    <!-- 内容主体区域 -->
+    <!--百分百适配-->
+    <div class="layui-fluid">
+        <!--位置显示-面包屑导航-->
+        <div class="layui-row layui-bg-gray button_nav">
+            <span><b>位置：</b></span>
+            <span class="layui-breadcrumb">
+                  <a href="javascript:void(0)">系统管理</a>
+                  <a href="javascript:void(0)">权限管理</a>
+                  <a href="javascript:void(0)"><cite>管理员管理</cite></a>
+            </span>
+        </div>
+        <!--操作栏-->
+        <table class="layui-table button_opear" lay-skin="line">
+            <tr>
+                <!--加载按钮-->
+                {include file='/public/button' /}
+                <!--查询条件-->
+
+            </tr>
+        </table>
+        <!--分割线-->
+        <hr>
+        <!--数据集-->
+        <table lay-filter="dataSet" class="dataSet" lay-data="{id:'dataSet'}">
+            <thead>
+                <tr>
+                    <td lay-data="{type:'checkbox',width:80}"></td>
+                    <td lay-data="{field:'user_id'}">管理员id</td>
+                    <td lay-data="{field:'role_name'}">管理员类型</td>
+                    <td lay-data="{field:'username'}">账号</td>
+                    <td lay-data="{field:'relaname'}">真实姓名</td>
+                    <td lay-data="{field:'mobile'}">手机号码</td>
+                    <td lay-data="{field:'login_count'}">访问次数</td>
+                    <td lay-data="{field:'last_time'}">上次访问时间</td>
+                    <td lay-data="{field:'last_ip'}">上次访问IP</td>
+                </tr>
+            </thead>
+            <tbody>
+            {volist name='data' id='v'}
+                <tr data-id="{$v.user_id}">
+                    <td><input type="checkbox" lay-skin="primary"></td>
+                    <td>{$v.user_id}</td>
+                    <td>{$v.role_name}</td>
+                    <td>{$v.username}</td>
+                    <td>{$v.relaname}</td>
+                    <td>{$v.mobile}</td>
+                    <td>{$v.login_count}</td>
+                    <td>{$v.last_time|date="y-m-d",###}</td>
+                    <td>{$v.last_ip}</td>
+                </tr>
+            {/volist}
+            </tbody>
+        </table>
+        <!--分割线-->
+        <hr>
+        <!--分页-->
+
+    </div>
+</div>
+
+<!--加载底部-->
+{include file='/public/footer' /}
+
+<!--js代码-->
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
+<script src="__PUBLIC__/admin/js/project.js"></script>
+<script>
+
+</script>
