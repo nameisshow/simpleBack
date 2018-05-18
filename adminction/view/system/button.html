@@ -28,13 +28,13 @@
                     <form class="layui-form" action="/admin.php/Index/button" method="get">
                         <div class="layui-form-item">
                             <div class="layui-input-inline">
-                                <input type="text" name="button_name" value="{if condition='$where.button_name'}{$where.button_name}{/if}" lay-verify="required" placeholder="请输入按钮名" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_name" value="" lay-verify="required" placeholder="请输入按钮名" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
-                                <input type="text" name="button_event" value="{if condition='$where.button_event'}{$where.button_event}{/if}" lay-verify="required" placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_event" value="" lay-verify="required" placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
-                                <input type="text" name="button_type" value="{if condition='$where.button_type'}{$where.button_type}{/if}" lay-verify="required" placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_type" value="" lay-verify="required" placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
                                 <button class="layui-btn">搜索</button>
@@ -47,7 +47,12 @@
         <!--分割线-->
         <hr>
         <!--数据集-->
-        <table>
+        <table class="layui-table" lay-even>
+            <colgroup>
+                <col width="10">
+                <col width="100">
+                <col>
+            </colgroup>
             <thead>
                 <tr>
                     <td></td>
@@ -62,7 +67,7 @@
             <tbody>
             {volist name='data' id='v'}
                 <tr id="{$v.button_id}">
-                    <td><input type="checkbox" lay-skin="primary"></td>
+                    <td><input type="checkbox" data-id="{$v.button_id}" class="primary" lay-skin="primary"></td>
                     <td>{$v.button_id}</td>
                     <td>{$v.button_name}</td>
                     <td>{$v.button_event}</td>
@@ -88,5 +93,8 @@
 <script src="__PUBLIC__/admin/js/jquery.min.js"></script>
 <script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
-
+    $('.primary').click(function(){
+        var id = $(this).attr('data-id');
+        alert(id);
+    });
 </script>

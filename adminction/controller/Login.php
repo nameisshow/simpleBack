@@ -66,45 +66,8 @@ class Login extends Controller{
             $res['msg'] = '密码为空';
             return json($res);
         }
-        $condition = $this->condition;
-        $condition['table'] = 'user';
-        $condition['field'] = '*';
-        $condition['where']['username'] = $username;
 
-        $sysModel = $this->systemModel;
-        $userInfo = $sysModel->getOne($condition);
-        if(!$userInfo){
-            $res['state'] = 98;
-            $res['msg'] = '用户bu存在';
-            return json($res);
-        }
-
-        if($userInfo['password'] != md5($password.$userInfo['salt'])){
-            $res['state'] = 96;
-            $res['msg'] = '用户名或密码错误';
-            return json($res);
-        }
-
-        Session::set('user_id',$userInfo['user_id']);
-
-        $data['last_time'] = $userInfo['login_time'];
-        $data['last_ip'] = $userInfo['login_ip'];
-        $data['login_time'] = time();
-        $data['login_ip'] = GetIp();
-        $data['login_count'] = $userInfo['login_count'] + 1;
-
-        $condition['where']['user_id'] = $userInfo['user_id'];
-        unset($condition['where']['username']);
-        $condition['data'] = $data;
-        $result = $sysModel->getUpd($condition);
-
-        if($result){
-           $res['state'] = 100;
-           $res['msg'] = '登录成功';
-        }else{
-            $res['state'] = 95;
-            $res['msg'] = '登录失败';
-        }
+        $res = $this->systemModel->toLogin($username,$password);
 
         return json($res);
     }

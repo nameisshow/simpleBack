@@ -8,6 +8,7 @@
 
 namespace admin\controller;
 
+use think\Db;
 use think\Request;
 
 class System extends Common{
@@ -30,10 +31,40 @@ class System extends Common{
     //按钮管理
     public function button()
     {
+
+        $page = $this->request->param('page') ? intval($this->request->param('page')) : 1;
+        $perPage = 5;
+        $where = [];
+        $data = Db::name('button')
+            ->where($where)
+            ->page($page, $perPage)
+            ->select();
+        $total = Db::name('button')
+            ->where($where)
+            ->count();
+        //dump($total);die;
+        //开始查询
+        //$data  = $this->systemModel->pageData($condition);
+
+        //分配变量
+        $this->assign('data',$data);
+        $this->assign('total',$total);
+        $this->assign('nowPage',$page);
+        $this->assign('perPage',$perPage);
+        $this->assign('where',$where);
+        $this->assign('leftNav',3);
+        $this->assign('topNav',1);
+        //渲染模板
+        return $this->fetch('/system/button');
+    }
+
+    //按钮管理
+    public function button2()
+    {
         //分页查询条件
         $condition = $this->condition;
         $condition['nowPage'] = isset($_GET['page']) ? intval($_GET['page']) : 1;
-        $condition['perPage'] = 2;//此处有问题，查询时分页总会多出一页
+        $condition['perPage'] = 10;//此处有问题，查询时分页总会多出一页
         $condition['table'] = 'button';
         //用户输入条件
         $request = $this->request;

@@ -359,4 +359,46 @@ class System extends Common
 
         return $result;
     }
+
+
+    public function toLogin($username,$password)
+    {
+        $userInfo = Db::name('admin')
+            ->where(['username'=>$username])
+            ->find();
+        if(!$userInfo){
+            $res['state'] = 98;
+            $res['msg'] = '用户bu存在';
+            return $res;
+        }
+
+        if($userInfo['password'] != md5($password.$userInfo['salt'])){
+            $res['state'] = 96;
+            $res['msg'] = '用户名或密码错误';
+            return $res;
+        }
+
+        session('user_id',$userInfo['user_id']);
+
+        $data['last_time'] = $userInfo['login_time'];
+        $data['last_ip'] = $userInfo['login_ip'];
+        $data['login_time'] = time();
+        $data['login_ip'] = GetIp();
+        $data['login_count'] = $userInfo['login_count'] + 1;
+
+
+        $result = Db::name('admin')
+            ->where(['user_id'=>$userInfo['user_id']])
+            ->update($data);
+
+        if($result){
+            $res['state'] = 100;
+            $res['msg'] = '登录成功';
+        }else{
+            $res['state'] = 95;
+            $res['msg'] = '登录失败';
+        }
+
+        return $res;
+    }
 }
