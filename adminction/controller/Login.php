@@ -102,4 +102,10 @@ class Login extends Controller{
         ];
         return new Redis($config);
     }
+
+
+    public function test()
+    {
+        echo json_encode(['status'=>100,'msg'=>'修改失败','data'=>$_POST['primary']]);
+    }
 }

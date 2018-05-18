@@ -2,8 +2,8 @@
 {include file='/public/nav' /}
 
 <!--<div class="layui-body">-->
-    <!--&lt;!&ndash; 内容主体区域 &ndash;&gt;-->
-    <!--<div style="padding: 15px;">内容主体区域</div>-->
+<!--&lt;!&ndash; 内容主体区域 &ndash;&gt;-->
+<!--<div style="padding: 15px;">内容主体区域</div>-->
 <!--</div>-->
 
 <div class="layui-body mycontainer">
@@ -28,13 +28,16 @@
                     <form class="layui-form" action="/admin.php/Index/button" method="get">
                         <div class="layui-form-item">
                             <div class="layui-input-inline">
-                                <input type="text" name="button_name" value="" lay-verify="required" placeholder="请输入按钮名" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_name" value="" lay-verify="required"
+                                       placeholder="请输入按钮名" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
-                                <input type="text" name="button_event" value="" lay-verify="required" placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_event" value="" lay-verify="required"
+                                       placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
-                                <input type="text" name="button_type" value="" lay-verify="required" placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
+                                <input type="text" name="button_type" value="" lay-verify="required"
+                                       placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
                                 <button class="layui-btn">搜索</button>
@@ -54,27 +57,27 @@
                 <col>
             </colgroup>
             <thead>
-                <tr>
-                    <td></td>
-                    <td>按钮id</td>
-                    <td>按钮名</td>
-                    <td>按钮事件</td>
-                    <td>按钮类型</td>
-                    <td>按钮排序</td>
-                    <td>按钮描述</td>
-                </tr>
+            <tr>
+                <td></td>
+                <td>按钮id</td>
+                <td>按钮名</td>
+                <td>按钮事件</td>
+                <td>按钮类型</td>
+                <td>按钮排序</td>
+                <td>按钮描述</td>
+            </tr>
             </thead>
             <tbody>
             {volist name='data' id='v'}
-                <tr id="{$v.button_id}">
-                    <td><input type="checkbox" data-id="{$v.button_id}" class="primary" lay-skin="primary"></td>
-                    <td>{$v.button_id}</td>
-                    <td>{$v.button_name}</td>
-                    <td>{$v.button_event}</td>
-                    <td>{$v.button_type}</td>
-                    <td>{$v.button_sort}</td>
-                    <td>{$v.button_desc}</td>
-                </tr>
+            <tr id="{$v.button_id}">
+                <td><input type="checkbox" data-id="{$v.button_id}" class="primary" lay-skin="primary"></td>
+                <td>{$v.button_id}</td>
+                <td>{$v.button_name}</td>
+                <td>{$v.button_event}</td>
+                <td>{$v.button_type}</td>
+                <td>{$v.button_sort}</td>
+                <td>{$v.button_desc}</td>
+            </tr>
             {/volist}
             </tbody>
         </table>
@@ -88,13 +91,16 @@
 <!--加载底部-->
 {include file='/public/footer' /}
 
-<!--js代码-->
-<script src="__PUBLIC__/layui/layui.js"></script>
-<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
-<script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
-    $('.primary').click(function(){
-        var id = $(this).attr('data-id');
-        alert(id);
-    });
+    function add() {
+        var primary = pro.getPrimaryKey();
+        if(primary){
+            var msg = '是否删除';
+            var url = '/admin.php/Login/test';
+            var data = {primary:'1,2'};
+            pro.message(msg, url, data);
+        }
+    }
 </script>
+</body>
+</html>
