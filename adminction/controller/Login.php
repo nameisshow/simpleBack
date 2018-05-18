@@ -20,31 +20,13 @@ class Login extends Controller{
     //系统模型
     protected $systemModel;
 
-    //
-    protected $condition;
-
     public function _initialize()
     {
         parent::_initialize();
         $this->systemModel = model('\admin\system\System');
         $this->request = Request::instance();
-        $this->createCondition();
     }
 
-    //构建查询条件
-    public function createCondition()
-    {
-        $this->condition = [
-            'table'=>'',
-            'join'=>'',
-            'where'=>'',
-            'field'=>'*',
-            'order'=>'',
-            'nowPage'=>1,
-            'perPage'=>10,
-            'data'=>''
-        ];
-    }
 
     public function toLogin()
     {
@@ -86,21 +68,6 @@ class Login extends Controller{
         $redis = $this->createRedis();
         $redis->clear();
         $this->logout();
-    }
-
-    private function createRedis()
-    {
-        $config = [
-            'host'       => '127.0.0.1',
-            'port'       => 6379,
-            'password'   => 'zhangbo',
-            'select'     => 0,
-            'timeout'    => 0,
-            'expire'     => 0,
-            'persistent' => false,
-            'prefix'     => '',
-        ];
-        return new Redis($config);
     }
 
 

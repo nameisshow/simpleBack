@@ -92,12 +92,12 @@
 {include file='/public/footer' /}
 
 <script>
-    function add() {
+    function del() {
         var primary = pro.getPrimaryKey();
         if(primary){
             var msg = '是否删除';
-            var url = '/admin.php/Login/test';
-            var data = {primary:'1,2'};
+            var url = '/admin.php/System/buttonDelAjax';
+            var data = {primary:primary};
             pro.message(msg, url, data);
         }
     }

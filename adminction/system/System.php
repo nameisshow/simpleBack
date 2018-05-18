@@ -360,7 +360,7 @@ class System extends Common
         return $result;
     }
 
-
+    //登录方法
     public function toLogin($username,$password)
     {
         $userInfo = Db::name('admin')

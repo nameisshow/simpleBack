@@ -1178,4 +1178,11 @@ class System extends Common{
     {
         return '这里是seo';
     }
+
+    //删除按钮
+    public function buttonDelAjax()
+    {
+        $id = $this->request->param('primary');
+        $this->commonAjax('delete','button',['button_id',$id]);
+    }
 }
