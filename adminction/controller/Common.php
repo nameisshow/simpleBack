@@ -38,6 +38,7 @@ class Common extends Controller
         $this->getUserInfo();
         $this->getMenu();
         $this->getButton();
+        $this->getNav();
         $this->createCondition();
         $this->createAjaxParam();
     }
@@ -113,6 +114,25 @@ class Common extends Controller
         $module_url = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
         $button = $this->systemModel->getButton($module_url);
         $this->assign('button', $button);
+    }
+
+    //获取curr，识别导航信息
+    public function getNav()
+    {
+        $module_url = Request::instance()->path();
+        if(strpos($module_url,'/') !== 0){
+            $module_url = '/'.$module_url;
+        }
+        $code = Db::name('module')
+            ->field('module_code')
+            ->where(['module_url'=>$module_url])
+            ->find()['module_code'];
+
+        if($code){
+            $code = explode('-',$code);
+            $this->assign('topNav',$code[0]);
+            $this->assign('leftNav',$code[2]);
+        }
     }
 
 

@@ -29,7 +29,8 @@ class System extends Common{
         echo $str;
     }
 
-    //按钮管理
+    /************按钮部分***************/
+
     public function button()
     {
         $result = $this->systemModel->getButtonPage();
@@ -42,8 +43,8 @@ class System extends Common{
 
         //TODO
         //单独写个方法分配curr
-        $this->assign('leftNav',3);
-        $this->assign('topNav',1);
+        //$this->assign('leftNav',3);
+        //$this->assign('topNav',1);
         //渲染模板
         return $this->fetch('/system/button');
     }
@@ -152,43 +153,8 @@ class System extends Common{
         }
     }
 
-    //构建检验按钮数据
-    public function createButtonData($request)
-    {
-        if($request->param('button_name')){
-            $data['button_name'] = $request->param('button_name');
-        }else{
-            $res['state'] = 99;
-            $res['msg'] = '按钮名为空';
-            return json($res);
-        }
-        if($request->param('button_event')){
-            $data['button_event'] = $request->param('button_event');
-        }else{
-            $res['state'] = 98;
-            $res['msg'] = '按钮事件为空';
-            return json($res);
-        }
-        if($request->param('button_type')){
-            $data['button_type'] = $request->param('button_type');
-        }else{
-            $res['state'] = 97;
-            $res['msg'] = '按钮类型为空';
-            return json($res);
-        }
-        if($request->param('button_desc')){
-            $data['button_desc'] = $request->param('button_desc');
-        }else{
-            $data['button_desc'] = '';
-        }
-        if($request->param('button_sort')){
-            $data['button_sort'] = $request->param('button_sort');
-        }else{
-            $data['button_sort'] = 0;
-        }
 
-        return $data;
-    }
+    /************模块部分***************/
 
 
     //模块管理
