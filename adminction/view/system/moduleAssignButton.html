@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<body>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -57,14 +57,14 @@
 </body>
 
 <!--js代码-->
-<script src="__PUBLIC__/layui/layui.js"></script>
-<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
-<script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
+
+    $ = layui.jquery;
+
     var module_id = parseInt($('input[name=module_id]').val());
     var button_name = $('input[name=button_name]').val();
 
-    function checkData(){
+    function checkForm(){
 
     }
 
@@ -167,3 +167,4 @@
 
 
 </script>
+</html>

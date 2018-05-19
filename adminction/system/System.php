@@ -487,7 +487,6 @@ class System extends Common
         if(!$data['module_code']){
             $data['module_code'] = '';
         }
-        error_log(print_r($data,1));
         $result = Db::name($table)
             ->insertGetId($data);
 
