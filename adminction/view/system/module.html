@@ -31,16 +31,21 @@
         <!--分割线-->
         <hr>
         <!--数据集-->
-        <table lay-filter="dataSet" class="dataSet" lay-data="{id:'dataSet'}">
+        <table class="layui-table" lay-even>
+            <colgroup>
+                <col width="10">
+                <col width="100">
+                <col>
+            </colgroup>
             <thead>
                 <tr>
-                    <td lay-data="{type:'checkbox',width:80}"></td>
-                    <td lay-data="{field:'module_id'}">模块id</td>
-                    <td lay-data="{field:'module_name' ,event: 'tree', style:'cursor: pointer;'}">模块名</td>
-                    <td lay-data="{field:'module_pid'}">模块父级</td>
-                    <td lay-data="{field:'module_code'}">模块代码</td>
-                    <td lay-data="{field:'module_url'}">模块链接</td>
-                    <td lay-data="{field:'module_sort'}">模块排序</td>
+                    <td></td>
+                    <td>模块id</td>
+                    <td>模块名</td>
+                    <td>模块父级</td>
+                    <td>模块代码</td>
+                    <td>模块链接</td>
+                    <td>模块排序</td>
                 </tr>
             </thead>
             <tbody>
@@ -48,7 +53,7 @@
                 <tr data-id="{$v.module_id}">
                     <td><input type="checkbox" lay-skin="primary"></td>
                     <td>{$v.module_id}</td>
-                    <td>{$v.module_name}</td>
+                    <td class="moduleTree" data-id="{$v.module_id}" >{$v.module_name}</td>
                     <td>{$v.module_pid}</td>
                     <td>{$v.module_code}</td>
                     <td>{$v.module_url}</td>
@@ -66,11 +71,35 @@
 
 <!--加载底部-->
 {include file='/public/footer' /}
-
-<!--js代码-->
-<script src="__PUBLIC__/layui/layui.js"></script>
-<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
-<script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
+    function add(){
+        var msg = '添加模块';
+        var url = '/admin.php/System/moduleAdd';
+        var area = ['400px','500px'];
+        pro.dialog(msg, url, area);
+    }
 
+
+    function upd() {
+        var primary = pro.getPrimaryKey(1);
+        if(primary){
+            var msg = '修改模块信息';
+            var url = '/admin.php/System/moduleUpd?moduleId='+primary;
+            var area = ['400px','400px'];
+            pro.dialog(msg, url, area);
+        }
+    }
+
+
+    function del() {
+        var primary = pro.getPrimaryKey();
+        if(primary){
+            var msg = '是否删除';
+            var url = '/admin.php/System/moduleDel';
+            var data = {primary:primary};
+            pro.message(msg, url, data);
+        }
+    }
 </script>
+</body>
+</html>

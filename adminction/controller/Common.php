@@ -127,7 +127,6 @@ class Common extends Controller
             ->field('module_code')
             ->where(['module_url'=>$module_url])
             ->find()['module_code'];
-
         if($code){
             $code = explode('-',$code);
             $this->assign('topNav',$code[0]);

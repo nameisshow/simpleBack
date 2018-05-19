@@ -41,10 +41,6 @@ class System extends Common{
         $this->assign('perPage',$result['perPage']);
         $this->assign('search',$result['search']);
 
-        //TODO
-        //单独写个方法分配curr
-        //$this->assign('leftNav',3);
-        //$this->assign('topNav',1);
         //渲染模板
         return $this->fetch('/system/button');
     }
@@ -155,68 +151,81 @@ class System extends Common{
 
 
     /************模块部分***************/
+    //public function module()
+    //{
+    //
+    //}
 
 
     //模块管理
     public function module()
     {
-        //分页查询条件
-        $condition = $this->condition;
-        $condition['table'] = 'module';
-
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        //开始查询
-        $data = $sysModel->getAll($condition);
-        $res = $this->treeForModuleTwo($data,0,0);
+        //树状菜单
+        $module = $this->systemModel->getModuleTree();
+        foreach($module as $key=>$val){
+            $prefix = '';
+            $module[$key]['module_name'] = '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>'.$module[$key]['module_name'];
+            for($i = 0; $i < $val['level'] - 1; $i++){
+                $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            }
+            $module[$key]['module_name'] = $prefix.$module[$key]['module_name'];
+        }
 
         //分配变量
-        $this->assign('data',$res);
-        $this->assign('leftNav',4);
-        $this->assign('topNav',1);
+        $this->assign('data',$module);
 
         //渲染模板
-        return $this->fetch('/index/module');
+        return $this->fetch('/system/module');
     }
 
     //添加模块
     public function moduleAdd()
     {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createModuleData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //插入数据
-            $condition = $this->condition;
-            $condition['table'] = 'module';
-            $condition['data'] = $data;
-            //dump($condition);die;
-            $result = $sysModel->insertModule($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '添加成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '添加失败';
+        if(Request::instance()->isPost()){
+
+            $data['module_name'] = trim(input('module_name/s',''));
+            $data['module_pid'] = input('module_pid/d',0);
+            $data['module_sort'] = input('module_sort/d',0);
+            $data['module_url'] = trim(input('module_url/s',''));
+
+            if(!$data['module_name']){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '模块名为空';
+                $this->returnAjax();
+            }
+            if(!$data['module_url']){
+                $this->result['status'] = 98;
+                $this->result['msg'] = '模块链接为空';
+                $this->returnAjax();
             }
 
-            return json($res);
+            $result = $this->systemModel->moduleAdd('module',$data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '添加成功';
+            }else{
+                $this->result['status'] = 97;
+                $this->result['msg'] = '添加失败';
+            }
+
+            $this->returnAjax();
 
         }else{
-            //查询条件
-            $condition = $this->condition;
-            $condition['table'] = 'module';
-            //开始查询
-            $data = $sysModel->getAll($condition);
-            $res = $this->treeForModuleTwo($data,0,0);
+
+            //树状菜单
+            $module = $this->systemModel->getModuleTree();
+            foreach($module as $key=>$val){
+                $prefix = '';
+                $module[$key]['module_name'] = '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>'.$module[$key]['module_name'];
+                for($i = 0; $i < $val['level'] - 1; $i++){
+                    $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                }
+                $module[$key]['module_name'] = $prefix.$module[$key]['module_name'];
+            }
             //dump($res);die;
-            $this->assign('data',$res);
-            return $this->fetch('/index/moduleAdd');
+            $this->assign('data',$module);
+            return $this->fetch('/system/moduleAdd');
 
         }
     }

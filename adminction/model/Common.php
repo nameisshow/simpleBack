@@ -296,4 +296,24 @@ class Common extends Model
             }
         }
     }
+
+
+
+
+    //树状分类for模块（用在添加和修改框里）/（更加通用）
+    protected function treeForModuleTwo($data, $pid = 0, $level = 0)
+    {
+        static $array = [];
+        $level++;
+        foreach ($data as $key => $val) {
+            if ($val['module_pid'] == $pid) {
+                for ($i = 0; $i < $level; $i++) {
+                    $val['level'] = $level;
+                }
+                $array[] = $val;
+                $this->treeForModuleTwo($data, $val['module_id'], $level);
+            }
+        }
+        return $array;
+    }
 }

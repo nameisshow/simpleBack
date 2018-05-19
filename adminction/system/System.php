@@ -405,7 +405,8 @@ class System extends Common
     }
 
 
-    //获取按钮列表
+    /**************按钮部分****************/
+
     public function getButtonPage()
     {
         $page = input('page/d',1);
@@ -426,9 +427,11 @@ class System extends Common
             ->where($where)
             ->page($page, $perPage)
             ->order('button_id desc')
+            ->cache(self::$cache)
             ->select();
         $total = Db::name('button')
             ->where($where)
+            ->cache(self::$cache)
             ->count();
         return ['data'=>$data, 'total'=>$total, 'page'=>$page, 'perPage'=>$perPage, 'search'=>$search];
     }
@@ -438,6 +441,7 @@ class System extends Common
     {
         $result = Db::name('button')
             ->where(['button_id'=>$button_id])
+            ->cache(self::$cache)
             ->find();
         return $result;
     }
@@ -458,4 +462,26 @@ class System extends Common
             ->insertGetId($data);
         return $result;
     }
+
+    /*************模块部分************/
+    public function getModuleTree()
+    {
+        $module = Db::name('module')
+            ->order('module_id desc')
+            ->cache(self::$cache)
+            ->select();
+        $tree = $this->treeForModuleTwo($module,0,0);
+
+        return $tree;
+    }
+
+    //添加模块数据
+    public function moduleAdd($table, $data)
+    {
+        $result = Db::name($table)
+            ->insertGetId($data);
+        return $result;
+    }
+
+
 }
