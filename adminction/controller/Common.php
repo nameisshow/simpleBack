@@ -10,6 +10,7 @@ namespace admin\controller;
 
 use think\Controller;
 use think\Db;
+use think\Request;
 use think\Session;
 
 class Common extends Controller
@@ -55,6 +56,10 @@ class Common extends Controller
             header('Location:/admin.php/Login/toLogin');
             die;
         }
+    }
+
+    protected function filter(){
+        Request::instance()->filter(['strip_tags','htmlspecialchars']);
     }
 
     //构建查询条件
@@ -108,41 +113,6 @@ class Common extends Controller
         $module_url = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
         $button = $this->systemModel->getButton($module_url);
         $this->assign('button', $button);
-    }
-
-
-    /********辅助方法***************/
-    protected function del($table, $key, $val)
-    {
-        if (!$table) {
-            $this->result['status'] = 99;
-            $this->result['msg'] = '请指定操作表格';
-            $this->returnAjax();
-        }
-        if (!$key) {
-            $this->result['status'] = 98;
-            $this->result['msg'] = '请指定操作主键';
-            $this->returnAjax();
-        }
-        if (!$val) {
-            $this->result['status'] = 97;
-            $this->result['msg'] = '主键值为空';
-            $this->returnAjax();
-        }
-        if (strpos($val, ',') !== false) {
-            $where[$key] = ['IN', explode(',', $val)];
-        } else {
-            $where[$key] = $val;
-        }
-        $result = Db::name($table)->where($where)->delete();
-        if ($result) {
-            $this->result['status'] = 100;
-            $this->result['msg'] = '删除成功';
-        } else {
-            $this->result['status'] = 99;
-            $this->result['msg'] = '删除失败';
-        }
-        $this->returnAjax();
     }
 
 

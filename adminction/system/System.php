@@ -360,6 +360,8 @@ class System extends Common
         return $result;
     }
 
+
+    /****************NEW*****************/
     //登录方法
     public function toLogin($username,$password)
     {
@@ -400,5 +402,60 @@ class System extends Common
         }
 
         return $res;
+    }
+
+
+    //获取按钮列表
+    public function getButtonPage()
+    {
+        $page = input('page/d',1);
+        $perPage = 5;
+        $where = [];
+        $search = [];
+
+        if($button_name = input('button_name/s','')){
+            $where['button_name'] = ['like','%'.$button_name.'%'];
+            $search['button_name'] = $button_name;
+        }
+        if($button_event = input('button_event/s','')){
+            $where['button_event'] = ['like','%'.$button_event.'%'];
+            $search['button_event'] = $button_event;
+        }
+
+        $data = Db::name('button')
+            ->where($where)
+            ->page($page, $perPage)
+            ->order('button_id desc')
+            ->select();
+        $total = Db::name('button')
+            ->where($where)
+            ->count();
+        return ['data'=>$data, 'total'=>$total, 'page'=>$page, 'perPage'=>$perPage, 'search'=>$search];
+    }
+
+    //获取单个按钮信息
+    public function getButtonInfo($button_id)
+    {
+        $result = Db::name('button')
+            ->where(['button_id'=>$button_id])
+            ->find();
+        return $result;
+    }
+
+    //更新按钮信息
+    public function buttonUpdate($table, $where, $data)
+    {
+        $result = Db::name($table)
+            ->where($where)
+            ->update($data);
+        return $result;
+    }
+
+    //添加按钮数据
+    public function buttonAdd($table, $data)
+    {
+        $result = Db::name($table)
+            ->insertGetId($data);
+        return $result;
     }
 }

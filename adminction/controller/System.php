@@ -20,6 +20,7 @@ class System extends Common{
     {
         parent::_initialize();
         $this->request = Request::instance();
+        $this->filter();
     }
 
     public function test()
@@ -31,83 +32,96 @@ class System extends Common{
     //按钮管理
     public function button()
     {
-
-        $page = $this->request->param('page') ? intval($this->request->param('page')) : 1;
-        $perPage = 5;
-        $where = [];
-        $data = Db::name('button')
-            ->where($where)
-            ->page($page, $perPage)
-            ->select();
-        $total = Db::name('button')
-            ->where($where)
-            ->count();
-        //dump($total);die;
-        //开始查询
-        //$data  = $this->systemModel->pageData($condition);
-
+        $result = $this->systemModel->getButtonPage();
         //分配变量
-        $this->assign('data',$data);
-        $this->assign('total',$total);
-        $this->assign('nowPage',$page);
-        $this->assign('perPage',$perPage);
-        $this->assign('where',$where);
+        $this->assign('data',$result['data']);
+        $this->assign('total',$result['total']);
+        $this->assign('page',$result['page']);
+        $this->assign('perPage',$result['perPage']);
+        $this->assign('search',$result['search']);
+
+        //TODO
+        //单独写个方法分配curr
         $this->assign('leftNav',3);
         $this->assign('topNav',1);
         //渲染模板
         return $this->fetch('/system/button');
     }
 
-    //按钮管理
-    public function button2()
+    //删除按钮
+    public function buttonDel()
     {
-        //分页查询条件
-        $condition = $this->condition;
-        $condition['nowPage'] = isset($_GET['page']) ? intval($_GET['page']) : 1;
-        $condition['perPage'] = 10;//此处有问题，查询时分页总会多出一页
-        $condition['table'] = 'button';
-        //用户输入条件
-        $request = $this->request;
-        $where = [];
-        if($request->param('button_name')){
-            $button_name = $request->param('button_name');
-            $where['button_name'] = $button_name;
-            $condition['where']['button_name'] = ['like','%'.$button_name.'%'];
-        }else{
-            $where['button_name'] = '';
-        }
-        if($request->param('button_event')){
-            $button_event = $request->param('button_event');
-            $where['button_event'] = $button_event;
-            $condition['where']['button_event'] = ['like','%'.$button_event.'%'];
-        }else{
-            $where['button_event'] = '';
-        }
-        if($request->param('button_type')){
-            $button_type = $request->param('button_type');
-            $where['button_type'] = $button_type;
-            $condition['where']['button_type'] = ['like','%'.$button_type.'%'];
-        }else{
-            $where['button_type'] = '';
-        }
+        $id = input('primary/d',0);
+        $this->commonAjax('delete','button',['button_id',$id]);
+    }
 
-        //开始查询
-        $data  = $this->systemModel->pageData($condition);
+    //更改按钮数据
+    public function buttonUpd()
+    {
+        if(Request::instance()->isPost()){
 
-        //分配变量
-        $this->assign('data',$data['data']);
-        $this->assign('total',$data['total']);
-        $this->assign('nowPage',$data['nowPage']);
-        $this->assign('perPage',$data['perPage']);
-        $this->assign('where',$where);
-        $this->assign('leftNav',3);
-        $this->assign('topNav',1);
-        //渲染模板
-        return $this->fetch('/system/button');
+            $where['button_id'] = input('button_id/d',0);
+
+            $data['button_name'] = input('button_name/s','');
+            $data['button_event'] = input('button_event/s','');
+            $data['button_sort'] = input('button_sort/d',0);
+            $data['button_desc'] = input('button_desc/s','');
+
+            $result = $this->systemModel->buttonUpdate('button',$where,$data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '修改成功';
+            }else if($result == 0){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '没有数据被修改';
+            }else{
+                $this->result['status'] = 98;
+                $this->result['msg'] = '修改失败';
+            }
+            $this->returnAjax();
+
+        }else{
+
+            $button_id = input('get.buttonId/d',0);
+            $info = $this->systemModel->getButtonInfo($button_id);
+            $this->assign('buttonInfo',$info);
+            return $this->fetch('/system/buttonUpd');
+
+        }
     }
 
     //添加按钮数据
     public function buttonAdd()
+    {
+        if(Request::instance()->isPost()){
+
+            $data['button_name'] = input('button_name/s','');
+            $data['button_event'] = input('button_event/s','');
+            $data['button_sort'] = input('button_sort/d',0);
+            $data['button_desc'] = input('button_desc/s','');
+
+            $result = $this->systemModel->buttonAdd('button',$data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '添加成功';
+            }else{
+                $this->result['status'] = 99;
+                $this->result['msg'] = '添加失败';
+            }
+            $this->returnAjax();
+
+        }else{
+
+            return $this->fetch('/system/buttonAdd');
+
+        }
+    }
+
+
+    //添加按钮数据
+    public function buttonAddss()
     {
         $request = $this->request;
         if($request->isPost()){
@@ -138,76 +152,6 @@ class System extends Common{
         }
     }
 
-    //修改按钮数据
-    public function buttonUpd()
-    {
-        $condition = $this->condition;
-        $request = $this->request;
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createButtonData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //构造条件
-            $where['button_id'] =  $request->param('button_id') ? intval($request->param('button_id')) : 0;
-            //修改数据
-            $condition['table'] = 'button';
-            $condition['where'] = $where;
-            $condition['data'] = $data;
-            $updateRes = $sysModel->getUpd($condition);
-
-            if($updateRes == 0){
-                $res['state'] = 100;
-                $res['msg'] = '没有数据改变';
-
-            }else if($updateRes){
-                $res['state'] = 100;
-                $res['msg'] = '修改成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '修改失败';
-            }
-
-            return json($res);
-
-        }else{
-
-            if($request->param('button_id')){
-                $button_id = trim($request->param('button_id'));
-            }else{
-                $button_id = 0;
-            }
-
-            $condition['table'] = 'button';
-            $condition['where']['button_id'] = $button_id;
-
-            $buttonInfo = $this->systemModel->getOne($condition);
-
-            $this->assign('buttonInfo',$buttonInfo);
-
-            return $this->fetch('/index/buttonUpd');
-
-        }
-    }
-    //按钮删除
-    public function buttonDel()
-    {
-        //接受参数
-        $ids = $this->request->param('ids');
-        $button_event = $this->request->param('button_event');
-        $primaryKey = $this->request->param('primaryKey');
-        //继承ajaxParam
-        $ajaxParam = $this->ajaxParam;
-        //设置参数
-        $ajaxParam['table'] = 'button';
-        $ajaxParam['button_event'] = $button_event;
-        $ajaxParam['primaryKey'] = $primaryKey;
-        $ajaxParam['primaryVal'] = $ids;
-        //发起操作
-        $res = $this->commonAjax($ajaxParam);
-        //返回json
-        return json($res);
-    }
     //构建检验按钮数据
     public function createButtonData($request)
     {
@@ -1179,10 +1123,5 @@ class System extends Common{
         return '这里是seo';
     }
 
-    //删除按钮
-    public function buttonDelAjax()
-    {
-        $id = $this->request->param('primary');
-        $this->commonAjax('delete','button',['button_id',$id]);
-    }
+
 }

@@ -25,20 +25,20 @@
                 <!--加载按钮-->
                 {include file='/public/button' /}
                 <td>
-                    <form class="layui-form" action="/admin.php/Index/button" method="get">
+                    <form class="layui-form" action="/admin.php/System/button" method="get">
                         <div class="layui-form-item">
                             <div class="layui-input-inline">
-                                <input type="text" name="button_name" value="" lay-verify="required"
+                                <input type="text" name="button_name" value="{$search.button_name}" lay-verify="required"
                                        placeholder="请输入按钮名" autocomplete="off" class="layui-input">
                             </div>
                             <div class="layui-input-inline">
-                                <input type="text" name="button_event" value="" lay-verify="required"
+                                <input type="text" name="button_event" value="{$search.button_event}" lay-verify="required"
                                        placeholder="请输入按钮事件" autocomplete="off" class="layui-input">
                             </div>
-                            <div class="layui-input-inline">
-                                <input type="text" name="button_type" value="" lay-verify="required"
-                                       placeholder="请输入按钮类型" autocomplete="off" class="layui-input">
-                            </div>
+                            <!--<div class="layui-input-inline">-->
+                                <!--<input type="text" name="button_type" value="" lay-verify="required"-->
+                                       <!--placeholder="请输入按钮类型" autocomplete="off" class="layui-input">-->
+                            <!--</div>-->
                             <div class="layui-input-inline">
                                 <button class="layui-btn">搜索</button>
                             </div>
@@ -62,7 +62,7 @@
                 <td>按钮id</td>
                 <td>按钮名</td>
                 <td>按钮事件</td>
-                <td>按钮类型</td>
+                <!--<td>按钮类型</td>-->
                 <td>按钮排序</td>
                 <td>按钮描述</td>
             </tr>
@@ -73,8 +73,8 @@
                 <td><input type="checkbox" data-id="{$v.button_id}" class="primary" lay-skin="primary"></td>
                 <td>{$v.button_id}</td>
                 <td>{$v.button_name}</td>
-                <td>{$v.button_event}</td>
-                <td>{$v.button_type}</td>
+                <td>{$v.button_event}()</td>
+                <!--<td>{$v.button_type}</td>-->
                 <td>{$v.button_sort}</td>
                 <td>{$v.button_desc}</td>
             </tr>
@@ -92,11 +92,31 @@
 {include file='/public/footer' /}
 
 <script>
+
+    function add(){
+        var msg = '修改按钮信息';
+        var url = '/admin.php/System/buttonAdd';
+        var area = ['400px','400px'];
+        pro.dialog(msg, url, area);
+    }
+
+
+    function upd() {
+        var primary = pro.getPrimaryKey(1);
+        if(primary){
+            var msg = '修改按钮信息';
+            var url = '/admin.php/System/buttonUpd?buttonId='+primary;
+            var area = ['400px','400px'];
+            pro.dialog(msg, url, area);
+        }
+    }
+
+
     function del() {
         var primary = pro.getPrimaryKey();
         if(primary){
             var msg = '是否删除';
-            var url = '/admin.php/System/buttonDelAjax';
+            var url = '/admin.php/System/buttonDel';
             var data = {primary:primary};
             pro.message(msg, url, data);
         }
