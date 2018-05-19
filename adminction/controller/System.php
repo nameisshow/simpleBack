@@ -25,8 +25,23 @@ class System extends Common{
 
     public function test()
     {
-        $str = 'SELECT count(*) AS count FROM `tp_button` LIMIT 2,2';
-        echo $str;
+        $module_code = $this->joinCode(124);
+        dump($module_code);die;
+    }
+
+    public function joinCode($pid){
+        static $module_code = [];
+        $res = Db::name('module')
+            ->field('module_id,module_pid,module_code')
+            ->where(['module_id'=>$pid])
+            ->find();
+        $module_code[] = $res['module_id'];
+        if($res['module_pid'] == 0){
+            return $module_code;
+        }else{
+            return $this->joinCode($res['module_pid']);
+        }
+
     }
 
     /************按钮部分***************/
@@ -48,7 +63,7 @@ class System extends Common{
     //删除按钮
     public function buttonDel()
     {
-        $id = input('primary/d',0);
+        $id = input('primary',0);
         $this->commonAjax('delete','button',['button_id',$id]);
     }
 
@@ -117,60 +132,15 @@ class System extends Common{
     }
 
 
-    //添加按钮数据
-    public function buttonAddss()
-    {
-        $request = $this->request;
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createButtonData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //插入数据
-            $condition = $this->condition;
-            $condition['table'] = 'button';
-            $condition['data'] = $data;
-            $insertId = $sysModel->getadd($condition);
-
-            if($insertId){
-                $res['state'] = 100;
-                $res['msg'] = '添加成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '添加失败';
-            }
-
-            return json($res);
-
-        }else{
-
-            return $this->fetch('/index/buttonAdd');
-
-        }
-    }
-
 
     /************模块部分***************/
-    //public function module()
-    //{
-    //
-    //}
 
 
     //模块管理
     public function module()
     {
         //树状菜单
-        $module = $this->systemModel->getModuleTree();
-        foreach($module as $key=>$val){
-            $prefix = '';
-            $module[$key]['module_name'] = '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>'.$module[$key]['module_name'];
-            for($i = 0; $i < $val['level'] - 1; $i++){
-                $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-            }
-            $module[$key]['module_name'] = $prefix.$module[$key]['module_name'];
-        }
-
+        $module = $this->getModule(1);
         //分配变量
         $this->assign('data',$module);
 
@@ -187,15 +157,11 @@ class System extends Common{
             $data['module_pid'] = input('module_pid/d',0);
             $data['module_sort'] = input('module_sort/d',0);
             $data['module_url'] = trim(input('module_url/s',''));
+            $data['module_code'] = '';
 
             if(!$data['module_name']){
                 $this->result['status'] = 99;
                 $this->result['msg'] = '模块名为空';
-                $this->returnAjax();
-            }
-            if(!$data['module_url']){
-                $this->result['status'] = 98;
-                $this->result['msg'] = '模块链接为空';
                 $this->returnAjax();
             }
 
@@ -214,15 +180,7 @@ class System extends Common{
         }else{
 
             //树状菜单
-            $module = $this->systemModel->getModuleTree();
-            foreach($module as $key=>$val){
-                $prefix = '';
-                $module[$key]['module_name'] = '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>'.$module[$key]['module_name'];
-                for($i = 0; $i < $val['level'] - 1; $i++){
-                    $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-                }
-                $module[$key]['module_name'] = $prefix.$module[$key]['module_name'];
-            }
+            $module = $this->getModule();
             //dump($res);die;
             $this->assign('data',$module);
             return $this->fetch('/system/moduleAdd');
@@ -233,122 +191,84 @@ class System extends Common{
     //添加模块
     public function moduleUpd()
     {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createModuleData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //条件
-            $where['module_id'] = $request->param('module_id') ? intval($request->param('module_id')) : 0;
-            //插入数据
-            $condition = $this->condition;
-            $condition['table'] = 'module';
-            $condition['data'] = $data;
-            $condition['where'] = $where;
-            //dump($condition);die;
-            $result = $sysModel->updateModule($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '编辑成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '编辑失败';
+
+        if(Request::instance()->isPost()){
+
+            $where['module_id'] = input('module_id/d',0);
+
+            $data['module_name'] = trim(input('module_name/s',''));
+            $data['module_pid'] = input('module_pid/d',0);
+            $data['module_sort'] = input('module_sort/d',0);
+            $data['module_url'] = trim(input('module_url/s',''));
+
+            if(!$where['module_id']){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '模块id为空';
+                $this->returnAjax();
             }
 
-            return json($res);
+            if(!$data['module_name']){
+                $this->result['status'] = 98;
+                $this->result['msg'] = '模块名为空';
+                $this->returnAjax();
+            }
+
+            $result = $this->systemModel->moduleUpdate('module', $where, $data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '编辑成功';
+            }else{
+                $this->result['status'] = 97;
+                $this->result['msg'] = '编辑失败';
+            }
+
+            $this->returnAjax();
 
         }else{
 
-            if($request->param('module_id')){
-                $module_id = trim($request->param('module_id'));
-            }else{
-                $module_id = 0;
-            }
+            $module_id = input('module_id/d',0);
 
-            //查询条件
-            $condition = $this->condition;
-            $condition['table'] = 'module';
-            //开始查询所有
-            $data = $sysModel->getAll($condition);
-            $res = $this->treeForModuleTwo($data,0,0);
+            //树状菜单
+            $module = $this->getModule();
+
             //查询本分类信息
-            foreach($data as $key=>$val){
+            foreach($module as $key=>$val){
                 if($val['module_id'] == $module_id){
+                    $val['module_name'] = str_replace('&nbsp;','',$val['module_name']);
                     $this->assign('moduleInfo',$val);
                 }
             }
-            //dump($res);die;
-            $this->assign('data',$res);
-            return $this->fetch('/index/moduleUpd');
+
+            $this->assign('data',$module);
+            return $this->fetch('/system/moduleUpd');
 
         }
     }
 
-
-    public function createModuleData($request)
-    {
-        //模块名
-        if($request->param('module_name')){
-            $data['module_name'] = trim($request->param('module_name'));
-        }else{
-            $res['state'] = 99;
-            $res['msg'] = '模块名为空';
-            return json($res);
-        }
-        //父级模块
-        if($request->param('module_pid')){
-            $data['module_pid'] = intval($request->param('module_pid'));
-        }else{
-            $data['module_pid'] = 0;
+    protected function getModule($isList = 0){
+        $module = $this->systemModel->getModuleTree();
+        foreach($module as $key=>$val){
+            $prefix = '';
+            if($isList){
+                $module[$key]['module_name'] = '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>'.$module[$key]['module_name'];
+            }
+            for($i = 0; $i < $val['level'] - 1; $i++){
+                $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+            }
+            $module[$key]['module_name'] = $prefix.$module[$key]['module_name'];
         }
 
-        //模块排序
-        if($request->param('module_sort')){
-            $data['module_sort'] = intval($request->param('module_sort'));
-        }
-
-        //模块链接
-        if($request->param('module_url')){
-            $data['module_url'] = trim($request->param('module_url'));
-        }
-
-        //模块code
-        //if($request->param('module_code')){
-        //    $data['module_code'] = trim($request->param('module_url'));
-        //}else{
-        //    $data['module_code'] = '0';
-        //}
-
-        //模块按钮
-        //添加修改时不涉及
-
-        return $data;
+        return $module;
     }
 
-
-    //按钮删除
+    //删除按钮
     public function moduleDel()
     {
-        //接受参数
-        $ids = $this->request->param('ids');
-        $button_event = $this->request->param('button_event');
-        $primaryKey = $this->request->param('primaryKey');
-        //继承ajaxParam
-        $ajaxParam = $this->ajaxParam;
-        //设置参数
-        $ajaxParam['table'] = 'module';
-        $ajaxParam['button_event'] = $button_event;
-        $ajaxParam['primaryKey'] = $primaryKey;
-        $ajaxParam['primaryVal'] = $ids;
-        //发起操作
-        $res = $this->commonAjax($ajaxParam);
-        //返回json
-        return json($res);
+        $id = input('primary',0);
+        $this->commonAjax('delete','module',['module_id',$id]);
     }
+
 
     //分配按钮
     public function moduleAssignButton()

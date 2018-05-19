@@ -30,10 +30,12 @@
             <form class="layui-form" id="form" action="javascript:void(0)" data-action="/admin.php/System/moduleAdd" method="post">
                 <div class="layui-form-item">
                     <div class="layui-input-block">
-                        <input type="text" name="module_name" lay-verify="required" placeholder="请输入模块名" autocomplete="off" class="layui-input">
+                        <label class="inputlabel" for="module_name">模块名字：</label>
+                        <input type="text" name="module_name" id="module_name" lay-verify="required" placeholder="请输入模块名" autocomplete="off" class="layui-input">
                     </div>
                     <div class="layui-input-block">
-                        <select name="module_pid" required lay-verify="required">
+                        <label class="inputlabel" for="module_pid">父级模块：</label>
+                        <select name="module_pid" id="module_pid" required lay-verify="required">
                             <option value="0">请选择父级模块</option>
                             {volist name="data" id="v"}
                             <option value="{$v.module_id}">{$v.module_name}</option>
@@ -41,10 +43,12 @@
                         </select>
                     </div>
                     <div class="layui-input-block">
-                        <input type="text" name="module_sort"  lay-verify="required" placeholder="请输入模块排序" autocomplete="off" class="layui-input">
+                        <label class="inputlabel" for="module_sort">模块排序：</label>
+                        <input type="text" name="module_sort" id="module_sort"  lay-verify="required" placeholder="请输入模块排序" autocomplete="off" class="layui-input">
                     </div>
                     <div class="layui-input-block">
-                        <input type="text" name="module_url"  lay-verify="required" placeholder="请输入模块链接，如：/index/Index/index" autocomplete="off" class="layui-input">
+                        <label class="inputlabel" for="module_url">模块链接：</label>
+                        <input type="text" name="module_url"  id="module_url" lay-verify="required" placeholder="请输入模块链接，如：/index/Index/index" autocomplete="off" class="layui-input">
                     </div>
                     <input type="hidden" name="isTree" value="1">
                     <div class="layui-input-block buttons">
@@ -66,10 +70,6 @@
         var button_name = $('input[name=module_name]').val();
         if(!button_name){
             return '请填写模块名称';
-        }
-        var module_url = $('input[name=module_url]').val();
-        if(!module_url){
-            return '请填写模块链接';
         }
     }
 </script>

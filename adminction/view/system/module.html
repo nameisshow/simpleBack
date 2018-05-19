@@ -51,7 +51,7 @@
             <tbody>
             {volist name='data' id='v'}
                 <tr data-id="{$v.module_id}">
-                    <td><input type="checkbox" lay-skin="primary"></td>
+                    <td><input type="checkbox" data-id="{$v.module_id}" class="primary" lay-skin="primary"></td>
                     <td>{$v.module_id}</td>
                     <td class="moduleTree" data-id="{$v.module_id}" >{$v.module_name}</td>
                     <td>{$v.module_pid}</td>
@@ -84,8 +84,8 @@
         var primary = pro.getPrimaryKey(1);
         if(primary){
             var msg = '修改模块信息';
-            var url = '/admin.php/System/moduleUpd?moduleId='+primary;
-            var area = ['400px','400px'];
+            var url = '/admin.php/System/moduleUpd?module_id='+primary;
+            var area = ['400px','500px'];
             pro.dialog(msg, url, area);
         }
     }

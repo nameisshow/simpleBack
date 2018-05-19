@@ -17,7 +17,7 @@ use think\Session;
 class System extends Common
 {
 
-    static $cache = true;
+    static $cache = false;
 
     private $user_id;
 
@@ -470,6 +470,7 @@ class System extends Common
             ->order('module_id desc')
             ->cache(self::$cache)
             ->select();
+
         $tree = $this->treeForModuleTwo($module,0,0);
 
         return $tree;
@@ -478,8 +479,49 @@ class System extends Common
     //添加模块数据
     public function moduleAdd($table, $data)
     {
+        $pid = $data['module_pid'];
+        if($pid != 0){
+            $data['module_code'] = $this->joinCode($pid);
+        }
+        $data['module_code'] = implode('-',array_reverse($data['module_code']));
+        if(!$data['module_code']){
+            $data['module_code'] = '';
+        }
+        error_log(print_r($data,1));
         $result = Db::name($table)
             ->insertGetId($data);
+
+        if($data['module_code']){
+            $update['module_code'] = $data['module_code'].'-'.$result;
+            $result = Db::name($table)
+                ->where(['module_id'=>$result])
+                ->update($update);
+
+        }
+        return $result;
+
+    }
+
+    protected function joinCode($pid){
+        static $module_code = [];
+        $res = Db::name('module')
+            ->field('module_id,module_pid')
+            ->where(['module_id'=>$pid])
+            ->find();
+        $module_code[] = $res['module_id'];
+        if($res['module_pid'] == 0){
+            return $module_code;
+        }else{
+            return $this->joinCode($res['module_pid']);
+        }
+    }
+
+    //更新模块信息
+    public function moduleUpdate($table, $where, $data)
+    {
+        $result = Db::name($table)
+            ->where($where)
+            ->update($data);
         return $result;
     }
 
