@@ -39,8 +39,8 @@ class Common extends Controller
         $this->getMenu();
         $this->getButton();
         $this->getNav();
-        $this->createCondition();
-        $this->createAjaxParam();
+        //$this->createCondition();
+        //$this->createAjaxParam();
     }
 
 

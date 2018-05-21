@@ -100,6 +100,16 @@
             pro.message(msg, url, data);
         }
     }
+
+    function assignButton(){
+        var primary = pro.getPrimaryKey(1);
+        if(primary){
+            var msg = '分配按钮';
+            var url = '/admin.php/System/assignButton?module_id='+primary;
+            var area = ['400px','500px'];
+            pro.dialog(msg, url, area);
+        }
+    }
 </script>
 </body>
 </html>

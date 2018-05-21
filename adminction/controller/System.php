@@ -269,49 +269,53 @@ class System extends Common{
         $this->commonAjax('delete','module',['module_id',$id]);
     }
 
-
-    //分配按钮
-    public function moduleAssignButton()
+    //未模块分配按钮
+    public function assignButton()
     {
-        $module_id = intval($this->request->param('module_id'));
-        $sysModel = $this->systemModel;
-        $condition = $this->condition;
-        $condition['table'] = 'module';
-        $condition['field'] = 'button_id';
-        $condition['where']['module_id'] = $module_id;
-        $button_id = $sysModel->getOne($condition)['button_id'];
-        $this->assign('module_id',$module_id);
-        $this->assign('selfButton',$button_id);
-        return $this->fetch('/index/moduleAssignButton');
+        if(Request::instance()->isPost()){
+            $module_id = input('module_id/d',0);
+            if(!$module_id){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '模块id不存在';
+                $this->returnAjax();
+            }
+            $button_id = input('button_id/s','');
+
+            $res = $this->systemModel->setButtonWithModule($module_id, $button_id);
+
+            if($res){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '修改成功';
+            }else if($res == 0){
+                $this->result['status'] = 97;
+                $this->result['msg'] = '没有任何数据被修改';
+            }else{
+                $this->result['status'] = 96;
+                $this->result['msg'] = '修改失败';
+            }
+
+            $this->returnAjax();
+
+        }else{
+
+            $module_id = input('module_id/d',0);
+            $button_id = $this->systemModel->getButtonWithModule($module_id);
+            $this->assign('module_id',$module_id);
+            $this->assign('selfButton',$button_id);
+            return $this->fetch('/system/moduleAssignButton');
+
+        }
     }
 
-    //获取按钮ajax
     public function getButtonAjax()
     {
-        //输入
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        //条件
-        $condition = $this->condition;
-
-        $condition['table'] = 'button';
-
-        $module_id = intval($request->param('module_id'));
-
-        if($request->param('button_name')){
-            $condition['where']['button_name'] = ['like','%'.trim($request->param('button_name')).'%'];
+        $module_id = input('module_id/d',0);
+        $where = [];
+        if($module_name = trim(input('module_name/s',''))){
+            $where['button_name'] = ['like','%'.$module_name.'%'];
         }
-        //获取所有按钮
-        $buttons = $sysModel->getAll($condition);
-
-        //获取当前模块按钮
-        $condForModule = $this->condition;
-        $condForModule['table'] = 'module';
-        $condForModule['field'] = 'button_id';
-        $condForModule['where']['module_id'] = $module_id;
-
-        $buttonsIds = $sysModel->getOne($condForModule)['button_id'];
+        $buttons = $this->systemModel->getButtonList($where);
+        $buttonsIds = $this->systemModel->getButtonWithModule($module_id);
 
         if($buttonsIds){
             //存在自己的按钮
@@ -326,53 +330,190 @@ class System extends Common{
         }
 
         if($buttons){
-            $res['state'] = 100;
-            $res['msg'] = '请求成功';
-            $res['data'] = $buttons;
-            $res['selfBUtton'] = $selfButton;
-            return json($res);
+            $this->result['status'] = 100;
+            $this->result['msg'] = '请求成功';
+            $this->result['data'] = $buttons;
+            $this->result['selfButton'] = $selfButton;
+            $this->returnAjax();
         }
+
     }
 
-    public function assignButton()
+
+    /****************管理员管理*************/
+    public function admin()
     {
-        //输入
-        $request = $this->request;
-        //条件
-        $condition = $this->condition;
 
-        $module_id = $request->param('module_id') ? intval($request->param('module_id')) : 0;
+        $admins = $this->systemModel->getAdminList();
 
-        if(!$module_id){
-            $res['state'] = 99;
-            $res['msg'] = '模块id不存在';
-            return json($res);
-        }
+        $this->assign('data',$admins);
 
-        $condition['where']['module_id'] = $module_id;
-
-        $button_id = $request->param('button_id') ? $request->param('button_id') : '';
-
-        $condition['data']['button_id'] = $button_id;
-
-        $condition['table'] = 'module';
-
-        //继承系统模型
-        $sysModel = $this->systemModel;
-
-        $insertId = $sysModel->getUpd($condition);
-
-        if($insertId){
-            $res['state'] = 100;
-            $res['msg'] = '修改成功';
-        }else{
-            $res['state'] = 98;
-            $res['msg'] = '修改失败';
-        }
-
-        return json($res);
-
+        return $this->fetch('/system/admin');
     }
+
+    public function adminAdd()
+    {
+        if(Request::instance()->isPost()){
+            //构造检验数据
+            if($username = trim(input('username/s',''))){
+                $data['username'] = $username;
+            }else{
+                $this->result['status'] = 99;
+                $this->result['msg'] = '用户名为空';
+                $this->returnAjax();
+            }
+
+            if($relaname = trim(input('relaname/s',''))){
+                $data['relaname'] = $relaname;
+            }else{
+                $this->result['status'] = 98;
+                $this->result['msg'] = '真实姓名为空';
+                $this->returnAjax();
+            }
+
+            if($mobile = trim(input('mobile/s',''))){
+                $data['mobile'] = $mobile;
+            }else{
+                $this->result['status'] = 97;
+                $this->result['msg'] = '手机号为空';
+                $this->returnAjax();
+            }
+
+            if(!preg_match('/^1[3458]\d{9}$',$data['mobile'])){
+                $this->result['status'] = 93;
+                $this->result['msg'] = '手机号格式不正确';
+                $this->returnAjax();
+            }
+
+            if($role_id = input('role_id/d',0)){
+                $data['role_id'] = $role_id;
+            }else{
+                $this->result['status'] = 96;
+                $this->result['msg'] = '管理员类型为空';
+                $this->returnAjax();
+            }
+
+            if($password = trim(input('password/s',''))){
+                $data['password'] = $password;
+                $data['salt'] = $this->getSalt();
+                $data['password'] = md5($data['password'].$data['salt']);
+                $data['addtime'] = time();
+            }else{
+                $this->result['status'] = 95;
+                $this->result['msg'] = '密码为空';
+                $this->returnAjax();
+            }
+
+            $result = $this->systemModel->addAdmin($data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '添加成功';
+            }else{
+                $this->result['status'] = 95;
+                $this->result['msg'] = '添加失败';
+            }
+
+            $this->returnAjax();
+
+        }else{
+
+            $role = $this->systemModel->getRoleList();
+            $this->assign('role',$role);
+
+            return $this->fetch('/system/adminAdd');
+
+        }
+    }
+
+    public function adminUpd()
+    {
+        $where['user_id'] = input('user_id/d',0);
+
+        if(Request::instance()->isPost()){
+            //构造检验数据
+            if($username = trim(input('username/s',''))){
+                $data['username'] = $username;
+            }else{
+                $this->result['status'] = 99;
+                $this->result['msg'] = '用户名为空';
+                $this->returnAjax();
+            }
+
+            if($relaname = trim(input('relaname/s',''))){
+                $data['relaname'] = $relaname;
+            }else{
+                $this->result['status'] = 98;
+                $this->result['msg'] = '真实姓名为空';
+                $this->returnAjax();
+            }
+
+            if($mobile = trim(input('mobile/s',''))){
+                $data['mobile'] = $mobile;
+            }else{
+                $this->result['status'] = 97;
+                $this->result['msg'] = '手机号为空';
+                $this->returnAjax();
+            }
+
+            if(!preg_match('/^1[3458]\d{9}$/',$data['mobile'])){
+                $this->result['status'] = 93;
+                $this->result['msg'] = '手机号格式不正确';
+                $this->returnAjax();
+            }
+
+            if($role_id = input('role_id/d',0)){
+                $data['role_id'] = $role_id;
+            }else{
+                $this->result['status'] = 96;
+                $this->result['msg'] = '管理员类型为空';
+                $this->returnAjax();
+            }
+
+            if($password = trim(input('password/s',''))){
+                $data['password'] = $password;
+                $data['salt'] = $this->getSalt();
+                $data['password'] = md5($data['password'].$data['salt']);
+                $data['addtime'] = time();
+            }
+
+            $result = $this->systemModel->updateAdmin($where, $data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '修改成功';
+            }else if($result == 0){
+                $this->result['status'] = 95;
+                $this->result['msg'] = '没有任何数据被修改';
+            }else{
+                $this->result['status'] = 94;
+                $this->result['msg'] = '修改失败';
+            }
+
+            $this->returnAjax();
+
+        }else{
+
+            $role = $this->systemModel->getRoleList();
+            $this->assign('role',$role);
+
+            $user_id = input('user_id/d',0);
+            $userInfo = $this->systemModel->getAdmin($user_id);
+            $this->assign('userInfo',$userInfo);
+
+            return $this->fetch('/system/adminUpd');
+
+        }
+    }
+
+    //删除按钮
+    public function adminDel()
+    {
+        $id = input('primary',0);
+        $this->commonAjax('delete','admin',['user_id',$id]);
+    }
+
+
 
 
     /*********角色管理*********/
@@ -844,173 +985,7 @@ class System extends Common{
     }
 
 
-    /****************管理员管理*************/
-    public function admins()
-    {
-        $condtion = $this->condition;
-        $condtion['table'] = 'u.user';
-        $condtion['join'] = ['tp_role r','u.role_id = r.role_id'];
-        $condtion['field'] = 'u.*,r.role_name';
-        $sysModel = $this->systemModel;
-        $allUser = $sysModel->getAll($condtion);
-        $this->assign('data',$allUser);
-        $this->assign('leftNav',6);
-        $this->assign('topNav',1);
-        return $this->fetch('/index/admins');
-    }
 
-    public function adminsAdd()
-    {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        //查询数组
-        $condition = $this->condition;
-
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createUserData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //插入数据
-            $condition['table'] = 'user';
-            $condition['data'] = $data;
-            //dump($condition);die;
-            $result = $sysModel->getAdd($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '添加成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '添加失败';
-            }
-
-            return json($res);
-
-        }else{
-
-            $condition['table'] = 'role';
-            $role = $sysModel->getAll($condition);
-            $this->assign('role',$role);
-
-            return $this->fetch('/index/adminsAdd');
-
-        }
-    }
-
-    public function adminsUpd()
-    {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        //查询数组
-        $condition = $this->condition;
-
-        $user_id = $request->param('user_id') ? intval($request->param('user_id')) : 0;
-
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createUserData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-
-            //修改数据
-            $condition['table'] = 'user';
-            $condition['where']['user_id'] = $user_id;
-            $condition['data'] = $data;
-            //dump($condition);die;
-            $result = $sysModel->getUpd($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '添加成功';
-            }else{
-                $res['state'] = 96;
-                $res['msg'] = '添加失败';
-            }
-
-            return json($res);
-
-        }else{
-
-            $condition['table'] = 'role';
-            $role = $sysModel->getAll($condition);
-            $this->assign('role',$role);
-
-            $condition['table'] = 'user';
-            $condition['where']['user_id'] = $user_id;
-            $userInfo = $sysModel->getOne($condition);
-            $this->assign('userInfo',$userInfo);
-
-            return $this->fetch('/index/adminsUpd');
-
-        }
-    }
-
-    public function createUserData($request)
-    {
-        if($request->param('username')){
-            $data['username'] = trim($request->param('username'));
-        }else{
-            $res['state'] = 99;
-            $res['msg'] = '用户名为空';
-            return json($res);
-        }
-
-        if($request->param('relaname')){
-            $data['relaname'] = trim($request->param('relaname'));
-        }else{
-            $res['state'] = 98;
-            $res['msg'] = '真实姓名为空';
-            return join($res);
-        }
-
-        if($request->param('mobile')){
-            $data['mobile'] = trim($request->param('mobile'));
-        }else{
-            $res['state'] = 97;
-            $res['msg'] = '手机号为空';
-            return join($res);
-        }
-
-        if($request->param('role_id')){
-            $data['role_id'] = trim($request->param('role_id'));
-        }else{
-            $res['state'] = 96;
-            $res['msg'] = '管理员类型为空';
-            return join($res);
-        }
-
-        if($request->param('password')){
-            $data['password'] = trim($request->param('password'));
-            $data['salt'] = $this->getSalt();
-            $data['password'] = md5($data['password'].$data['salt']);
-            $data['addtime'] = time();
-        }
-
-        return $data;
-    }
-
-    //按钮删除
-    public function adminsDel()
-    {
-        //接受参数
-        $ids = $this->request->param('ids');
-        $button_event = $this->request->param('button_event');
-        $primaryKey = $this->request->param('primaryKey');
-        //继承ajaxParam
-        $ajaxParam = $this->ajaxParam;
-        //设置参数
-        $ajaxParam['table'] = 'user';
-        $ajaxParam['button_event'] = $button_event;
-        $ajaxParam['primaryKey'] = $primaryKey;
-        $ajaxParam['primaryVal'] = $ids;
-        //发起操作
-        $res = $this->commonAjax($ajaxParam);
-        //返回json
-        return json($res);
-    }
 
     //这里是seo
     public function seo()
