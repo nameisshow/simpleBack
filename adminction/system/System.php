@@ -549,8 +549,8 @@ class System extends Common
     public function setButtonWithModule($module_id, $button_id)
     {
         $res = Db::name('module')
-            ->where(['module_id'=>$module_id])
-            ->update(['button_id'=>$button_id]);
+            ->where(['module_id' => $module_id])
+            ->update(['button_id' => $button_id]);
         return $res;
     }
 
@@ -595,7 +595,7 @@ class System extends Common
     public function getAdmin($user_id)
     {
         $info = DB::name('admin')
-            ->where(['user_id'=>$user_id])
+            ->where(['user_id' => $user_id])
             ->find();
         return $info;
     }
@@ -604,6 +604,51 @@ class System extends Common
     public function updateAdmin($where, $data)
     {
         $res = Db::name('admin')
+            ->where($where)
+            ->update($data);
+        return $res;
+    }
+
+
+    /*************角色部分************/
+
+    public function addRole($data)
+    {
+        $insertId = Db::name('role')
+            ->insertGetId($data);
+        return $insertId;
+    }
+
+    public function getRole($role_id)
+    {
+        $info = Db::name('role')
+            ->where(['role_id' => $role_id])
+            ->find();
+        return $info;
+    }
+
+    public function updateRole($where, $data)
+    {
+        $res = Db::name('role')
+            ->where($where)
+            ->update($data);
+        return $res;
+    }
+
+    //获取某个角色当前的模块
+    public function getModuleWithRole($role_id)
+    {
+        $module_id = Db::name('role')
+            ->field('module_id')
+            ->where(['role_id' => $role_id])
+            ->find()['module_id'];
+        return $module_id;
+    }
+
+    //设置某个角色模块权限
+    public function setRolePrevm($where, $data)
+    {
+        $res = Db::name('role')
             ->where($where)
             ->update($data);
         return $res;

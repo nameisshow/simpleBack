@@ -519,138 +519,108 @@ class System extends Common{
     /*********角色管理*********/
     public function role()
     {
-        //分页查询条件
-        $condition = $this->condition;
-        $condition['table'] = 'role';
 
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        //开始查询
-        $data = $sysModel->getAll($condition);
+        $data = $this->systemModel->getRoleList();
 
         //分配变量
         $this->assign('data',$data);
-        $this->assign('leftNav',5);
-        $this->assign('topNav',1);
 
         //渲染模板
-        return $this->fetch('/index/role');
+        return $this->fetch('/system/role');
     }
 
     public function roleAdd()
     {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        if($request->isPost()){
+        if(Request::instance()->isPost()){
             //构造检验数据
-            $data = $this->createRoleData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //插入数据
-            $condition = $this->condition;
-            $condition['table'] = 'role';
-            $condition['data'] = $data;
-            //dump($condition);die;
-            $result = $sysModel->getAdd($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '添加成功';
+            if($role_name = trim(input('role_name/s',''))){
+                $data['role_name'] = $role_name;
             }else{
-                $res['state'] = 96;
-                $res['msg'] = '添加失败';
+                $this->result['status'] = 99;
+                $this->result['msg'] = '角色名为空';
+                $this->returnAjax();
             }
 
-            return json($res);
+            if($role_desc = trim(input('role_desc/s',''))){
+                $data['role_desc'] = $role_desc;
+            }
+
+            $data['addtime'] = time();
+
+            $result = $this->systemModel->addRole($data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '添加成功';
+            }else{
+                $this->result['status'] = 98;
+                $this->result['msg'] = '添加失败';
+            }
+
+            $this->returnAjax();
 
         }else{
 
-            return $this->fetch('/index/roleAdd');
+            return $this->fetch('/system/roleAdd');
 
         }
     }
 
     public function roleUpd()
     {
-        //参数对象
-        $request = $this->request;
-        //继承系统模型
-        $sysModel = $this->systemModel;
-        if($request->isPost()){
-            //构造检验数据
-            $data = $this->createRoleData($request);
-            //继承系统模型
-            $sysModel = $this->systemModel;
-            //插入数据
-            $condition = $this->condition;
-            $condition['table'] = 'role';
-            $condition['data'] = $data;
-            $role_id = $request->param('role_id');
-            $condition['where']['role_id'] = $role_id;
-            //dump($condition);die;
-            $result = $sysModel->getUpd($condition);
-            if($result){
-                $res['state'] = 100;
-                $res['msg'] = '修改成功';
+
+        if(Request::instance()->isPost()){
+
+            $where['role_id'] = input('role_id/d',0);
+
+            if($role_name = trim(input('role_name/s',''))){
+                $data['role_name'] = $role_name;
             }else{
-                $res['state'] = 96;
-                $res['msg'] = '修改失败';
+                $this->result['status'] = 99;
+                $this->result['msg'] = '角色名为空';
+                $this->returnAjax();
             }
 
-            return json($res);
+            if($role_desc = trim(input('role_desc/s',''))){
+                $data['role_desc'] = $role_desc;
+            }
+
+            //$data['addtime'] = time();
+
+
+            $result = $this->systemModel->updateRole($where, $data);
+
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '修改成功';
+            }else if($result == 0){
+                $this->result['status'] = 95;
+                $this->result['msg'] = '没有任何数据被修改';
+            }else{
+                $this->result['status'] = 94;
+                $this->result['msg'] = '修改失败';
+            }
+
+            $this->returnAjax();
 
         }else{
 
-            $role_id = $request->param('role_id') ? intval($request->param('role_id')) : 0;
-            $condition = $this->condition;
-            $condition['table'] = 'role';
-            $condition['where']['role_id'] = $role_id;
-            $sysModel = $this->systemModel;
-            $roleInfo = $sysModel->getOne($condition);
+            $role_id = input('role_id/d',0);
+
+            $roleInfo = $this->systemModel->getRole($role_id);
+
             $this->assign('roleInfo',$roleInfo);
-            return $this->fetch('/index/roleUpd');
+            return $this->fetch('/system/roleUpd');
 
         }
     }
 
-    public function createRoleData($request)
-    {
-        if($request->param('role_name')){
-            $data['role_name'] = trim($request->param('role_name'));
-        }else{
-            $res['state'] = 99;
-            $res['msg'] = '角色名为空';
-            return json($res);
-        }
-
-        if($request->param('role_desc')){
-            $data['role_desc'] = trim($request->param('role_desc'));
-        }
-
-        $data['addtime'] = time();
-
-        return $data;
-    }
-
-    //按钮删除
+    //删除按钮
     public function roleDel()
     {
-        //接受参数
-        $ids = $this->request->param('ids');
-        $button_event = $this->request->param('button_event');
-        $primaryKey = $this->request->param('primaryKey');
-        //继承ajaxParam
-        $ajaxParam = $this->ajaxParam;
-        //设置参数
-        $ajaxParam['table'] = 'role';
-        $ajaxParam['button_event'] = $button_event;
-        $ajaxParam['primaryKey'] = $primaryKey;
-        $ajaxParam['primaryVal'] = $ids;
-        //发起操作
-        $res = $this->commonAjax($ajaxParam);
-        //返回json
-        return json($res);
+        $id = input('primary',0);
+        $this->commonAjax('delete','role',['role_id',$id]);
     }
 
 
@@ -658,6 +628,78 @@ class System extends Common{
 
     /****************模块权限*************/
     public function rolePrevm()
+    {
+        if(Request::instance()->isPost()){
+
+            $where['role_id'] = input('role_id/d',0);
+            if(!$where['role_id']){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '角色id不存在';
+                $this->returnAjax();
+            }
+
+            $data['module_id'] = input('module_id/s','');
+            if(!$data['module_id']){
+                $this->result['status'] = 98;
+                $this->result['msg'] = '模块id不存在';
+                $this->returnAjax();
+            }
+
+
+            $result = $this->systemModel->setRolePrevm($where, $data);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '修改成功';
+            }else if($result == 0){
+                $this->result['status'] = 97;
+                $this->result['msg'] = '没有任何数据被修改';
+            }else{
+                $this->result['status'] = 96;
+                $this->result['msg'] = '修改失败';
+            }
+
+            $this->returnAjax();
+
+        }else{
+
+            //模块
+            $res = $this->systemModel->getModuleTree();
+
+            //当前角色
+            $role_id = input('role_id/d',0);
+            $moduleIds = $this->systemModel->getModuleWithRole($role_id);
+
+
+            //当前角色已选择的模块
+            $selfModule = explode(',',$moduleIds);
+            $checked = '<input type="checkbox" lay-skin="primary" checked>';
+            $nocChecked = '<input type="checkbox" lay-skin="primary">';
+            foreach($res as $key=>$val){
+                if(in_array($val['module_id'],$selfModule)){
+                    $res[$key]['module_name'] = $checked.$res[$key]['module_name'];
+                }else{
+                    $res[$key]['module_name'] = $nocChecked.$res[$key]['module_name'];
+                }
+                $prefix = '';
+                for($i = 0; $i < $val['level'] - 1; $i++){
+                    $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                }
+                $res[$key]['module_name'] = $prefix . $res[$key]['module_name'];
+            }
+
+
+            $this->assign('data',$res);
+            $this->assign('role_id',$role_id);
+            $this->assign('selfModule',$moduleIds);
+            return $this->fetch('/system/rolePrevm');
+
+        }
+    }
+
+
+    /****************模块权限*************/
+    public function rolePrevms()
     {
         //输入对象
         $request = $this->request;
@@ -694,7 +736,7 @@ class System extends Common{
         $this->assign('data',$res);
         $this->assign('role_id',$role_id);
         $this->assign('selfModule',$moduleIds);
-        return $this->fetch('/index/rolePrevm');
+        return $this->fetch('/system/rolePrevm');
     }
     //修改角色的模块权限
     public function rolePrevmAjax()

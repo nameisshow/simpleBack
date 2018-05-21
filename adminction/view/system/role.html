@@ -31,20 +31,25 @@
         <!--分割线-->
         <hr>
         <!--数据集-->
-        <table lay-filter="dataSet" class="dataSet" lay-data="{id:'dataSet'}">
+        <table class="layui-table" layui-enev>
+            <colgroup>
+                <col width="10">
+                <col width="100">
+                <col>
+            </colgroup>
             <thead>
                 <tr>
-                    <td lay-data="{type:'checkbox',width:80}"></td>
-                    <td lay-data="{field:'role_id'}">角色id</td>
-                    <td lay-data="{field:'role_name'}">角色名</td>
-                    <td lay-data="{field:'addtime'}">添加时间</td>
-                    <td lay-data="{field:'role_desc'}">角色描述</td>
+                    <td></td>
+                    <td>角色id</td>
+                    <td>角色名</td>
+                    <td>添加时间</td>
+                    <td>角色描述</td>
                 </tr>
             </thead>
             <tbody>
             {volist name='data' id='v'}
                 <tr data-id="{$v.role_id}">
-                    <td><input type="checkbox" lay-skin="primary"></td>
+                    <td><input type="checkbox"  data-id="{$v.role_id}" class="primary" lay-skin="primary"></td>
                     <td>{$v.role_id}</td>
                     <td>{$v.role_name}</td>
                     <td>{$v.addtime|date='y-m-d H:i:s',###}</td>
@@ -63,10 +68,57 @@
 <!--加载底部-->
 {include file='/public/footer' /}
 
+<!--引入js文件-->
+{include file='/public/common_javascript' /}
 <!--js代码-->
-<script src="__PUBLIC__/layui/layui.js"></script>
-<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
-<script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
+    function add(){
+        var msg = '添加角色';
+        var url = '/admin.php/System/roleAdd';
+        var area = ['400px','400px'];
+        pro.dialog(msg, url, area);
+    }
 
+
+    function upd() {
+        var primary = pro.getPrimaryKey(1);
+        console.log(primary);
+        if(primary){
+            var msg = '修改角色信息';
+            var url = '/admin.php/System/roleUpd?role_id='+primary;
+            var area = ['400px','400px'];
+            pro.dialog(msg, url, area);
+        }
+    }
+
+
+    function del() {
+        var primary = pro.getPrimaryKey();
+        if(primary){
+            var msg = '是否删除';
+            var url = '/admin.php/System/roleDel';
+            var data = {primary:primary};
+            pro.message(msg, url, data);
+        }
+    }
+
+    function prevm(){
+        var primary = pro.getPrimaryKey(1);
+        if(primary){
+            var msg = '模块权限';
+            var url = '/admin.php/System/rolePrevm?role_id='+primary;
+            var area = ['400px','500px'];
+            pro.dialog(msg, url, area);
+        }
+    }
+
+    function prevb(){
+        var primary = pro.getPrimaryKey(1);
+        if(primary){
+            var msg = '按钮权限';
+            var url = '/admin.php/System/prevb?role_id='+primary;
+            var area = ['400px','400px'];
+            pro.dialog(msg, url, area);
+        }
+    }
 </script>
