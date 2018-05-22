@@ -654,4 +654,24 @@ class System extends Common
         return $res;
     }
 
+    //获取某个角色的button_json
+    public function getButtonJson($role_id)
+    {
+        $button_json = Db::name('role')
+            ->field('button_json')
+            ->where(['role_id' => $role_id])
+            ->find()['button_json'];
+        return $button_json;
+    }
+
+    //设置某个角色的button_json
+    public function setButtonJson($role_id, $button_json)
+    {
+        $res = Db::name('role')
+            ->where(['role_id'=>$role_id])
+            ->update(['button_json'=>$button_json]);
+        return $res;
+    }
+
+
 }

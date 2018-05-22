@@ -27,7 +27,7 @@
         <!-- 内容主体区域 -->
         <!--百分百适配-->
         <div class="layui-fluid">
-            <form class="layui-form" id="form" action="/admin.php/Index/rolePrevbAjax" method="post">
+            <form class="layui-form" id="form" action="javascript:void(0)" data-action="/admin.php/System/rolePrevb" method="post">
                 <div class="layui-form-item prevButton">
                     <div class="layui-input-inline moduleTreeInRole">
                         {volist name="data" id="v"}
@@ -51,15 +51,16 @@
     </div>
 </body>
 
+<!--引入js文件-->
+{include file='/public/common_javascript' /}
 <!--js代码-->
-<script src="__PUBLIC__/layui/layui.js"></script>
-<script src="__PUBLIC__/admin/js/jquery.min.js"></script>
-<script src="__PUBLIC__/admin/js/project.js"></script>
 <script>
+
+    $ = layui.jquery;
 
     var role_id;
 
-    function checkData(){
+    function checkForm(){
 
     }
 
@@ -90,9 +91,6 @@
 
     //点击左边模块
     $('.moduleTreeInRole .layui-input-block').click(function(){
-        if(!$(this).attr('data-url')){
-            return false;
-        }
         var module_id = $(this).attr('data-mid');
         //字体变色
         changeColor($(this));
@@ -106,12 +104,13 @@
     //ajax请求按钮数据
     function getButtonOfRole(module_id){
         $.ajax({
-            url:'/admin.php/Index/getButtonOfRoleAjax',
+            url:'/admin.php/System/getButtonOfRoleAjax',
             datatype:'json',
             type:'get',
             data:{module_id:module_id,role_id:role_id},
             success:function(res){
-                if(res.state == 100){
+                var res = eval('('+res+')');
+                if(res.status == 100){
                     var data = res.data;
                     if(!data){
                         return false;
@@ -159,9 +158,9 @@
         if(buttons){
             var buttonArray = buttons.split(',');
             if(type == 1){
-                joinToArray(buttonArray,button_id);
+                pro.joinToArray(buttonArray,button_id);
             }else{
-                subToArray(buttonArray,button_id);
+                pro.subToArray(buttonArray,button_id);
             }
             nowObj.val(buttonArray.join(','));
         }else{
@@ -169,32 +168,5 @@
             nowObj.val(button_id);
         }
     }
-
-    //判断一个元素是否在一个数组中，不在的话就将它加入到数组中去
-    function joinToArray(array,elem){
-        var flag = 0;
-        for(i in array){
-            if(array[i] == elem){
-                flag = 1;
-            }
-        }
-        if(flag == 0){
-            array.push(elem);
-        }
-        //无需return，push方法直接操作原数据
-    }
-    //判断一个元素是否在一个数组中，在的话就将它截去
-    function subToArray(array,elem){
-        var flag = 0;
-        var index = 0;
-        for(i in array){
-            if(array[i] == elem){
-                flag = 1;
-                index = i;
-            }
-        }
-        if(flag == 1){
-            array.splice(index,1);
-        }
-    }
 </script>
+</html>

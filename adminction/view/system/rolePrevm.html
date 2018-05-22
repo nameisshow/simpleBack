@@ -64,8 +64,6 @@
     $('.moduleTreeInRole').on('click','.layui-input-block',function(){
         var module_id = parseInt($(this).attr('data-mid'));
         var module_pid = parseInt($(this).attr('data-pid'));
-//        console.log(module_id);
-//        console.log(module_pid);
 
         //先选择上面的父级
         toSelectPrev(module_pid);
@@ -77,7 +75,7 @@
             //为下面所有input移除checked
             toSelectNext(module_id,$(this),0);
         }
-
+        //
         setModuleIds();
 
     });

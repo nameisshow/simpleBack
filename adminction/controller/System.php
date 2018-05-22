@@ -650,13 +650,13 @@ class System extends Common{
 
             if($result){
                 $this->result['status'] = 100;
-                $this->result['msg'] = '修改成功';
+                $this->result['msg'] = '模块权限分配成功';
             }else if($result == 0){
                 $this->result['status'] = 97;
                 $this->result['msg'] = '没有任何数据被修改';
             }else{
                 $this->result['status'] = 96;
-                $this->result['msg'] = '修改失败';
+                $this->result['msg'] = '模块权限分配失败';
             }
 
             $this->returnAjax();
@@ -698,181 +698,135 @@ class System extends Common{
     }
 
 
-    /****************模块权限*************/
-    public function rolePrevms()
-    {
-        //输入对象
-        $request = $this->request;
-        //sys模型
-        $sysModel = $this->systemModel;
-        //查询条件
-        $condition = $this->condition;
-        $condition['table'] = 'module';
-        //开始查询
-        $data = $sysModel->getAll($condition);
-        $res = $this->treeForModuleThree($data,0,0);
-
-        //当前角色
-        $role_id = $request->param('role_id');
-        $condition['table'] = 'role';
-        $condition['field'] = 'module_id';
-        $condition['where']['role_id'] = $role_id;
-        $moduleIds = $sysModel->getOne($condition)['module_id'];
-
-        //当前角色已选择的模块
-        if($moduleIds){
-            $selfModule = explode(',',$moduleIds);
-            $search = '<input type="checkbox" lay-skin="primary">';
-            $replace = '<input type="checkbox" lay-skin="primary" checked>';
-            foreach($res as $key=>$val){
-                if(in_array($val['module_id'],$selfModule)){
-                    $res[$key]['module_name'] = str_replace($search,$replace,$val['module_name']);
-                }
-            }
-        }
-
-
-        //dump($res);die;
-        $this->assign('data',$res);
-        $this->assign('role_id',$role_id);
-        $this->assign('selfModule',$moduleIds);
-        return $this->fetch('/system/rolePrevm');
-    }
-    //修改角色的模块权限
-    public function rolePrevmAjax()
-    {
-        //输入
-        $request = $this->request;
-        //条件
-        $condition = $this->condition;
-
-        $role_id = $request->param('role_id') ? intval($request->param('role_id')) : 0;
-        if(!$role_id){
-            $res['state'] = 99;
-            $res['msg'] = '角色id不存在';
-            return json($res);
-        }
-
-        $module_id = $request->param('module_id') ? $request->param('module_id') : '';
-        if(!$module_id){
-            $res['state'] = 98;
-            $res['msg'] = '模块id不存在';
-            return json($res);
-        }
-
-        $condition['table'] = 'role';
-        $condition['where']['role_id'] = $role_id;
-        $condition['data']['module_id'] = $module_id;
-
-        $sysModel = $this->systemModel;
-        $result = $sysModel->getUpd($condition);
-
-        if($result){
-            $res['state'] = 100;
-            $res['msg'] = '模块权限分配成功';
-            return json($res);
-        }else{
-            $res['state'] = 97;
-            $res['msg'] = '模块权限分配失败';
-            return json($res);
-        }
-    }
-
-
-
     /****************按钮权限*************/
     public function rolePrevb()
     {
-        //输入对象
-        $request = $this->request;
-        //sys模型
-        $sysModel = $this->systemModel;
-        //查询数组
-        $condition = $this->condition;
-        //当前角色
-        $role_id = $request->param('role_id');
+        if(Request::instance()->isPost()){
 
-        //查询本角色所有模块
-        $condition['table'] = 'role';
-        $condition['where']['role_id'] = $role_id;
-        $condition['field'] = 'module_id';
-        $moduleIds = $sysModel->getOne($condition)['module_id'];
+            //当前角色
+            $role_id = input('role_id/d',0);
+            if(!$role_id){
+                $this->result['status'] = 99;
+                $this->result['msg'] = '角色id不存在';
+                $this->returnAjax();
+            }
+            $moduleArray = $_POST['modules'] ? $_POST['modules'] : [];
+            if(!$moduleArray){
+                $this->result['status'] = 98;
+                $this->result['msg'] = '模块id组为空';
+                $this->returnAjax();
+            }
+            $buttonArray = $_POST['buttons'] ? $_POST['buttons'] : [];
+            if(!$buttonArray){
+                $this->result['status'] = 97;
+                $this->result['msg'] = '按钮组为空';
+                $this->returnAjax();
+            }
 
-        //在module表中查找完整模块信息，并将其tree化
-        unset($condition['where']['role_id']);
-        $condition['table'] = 'module';
-        $condition['where']['module_id'] = ['in',$moduleIds];
-        $condition['field'] = '*';
-        $modules = $sysModel->getAll($condition);
-        $res = $this->treeForModuleFour($modules,0,0);
+            $button_json = [];
 
-        if($res){
-            $res = $this->assignYet($role_id,$res);
-            $this->assign('data',$res);
+            foreach($moduleArray as $key=>$val){
+                if($buttonArray[$key]){
+                    //该模块下呗选择的按钮不为空
+                    $button_json[$val] = explode(',',$buttonArray[$key]);
+                }
+            }
+
+            if(!$button_json){
+                $button_json = '';
+            }else{
+                $button_json = json_encode($button_json);
+            }
+
+            $result = $this->systemModel->setButtonJson($role_id, $button_json);
+
+            if($result){
+                $this->result['status'] = 100;
+                $this->result['msg'] = '按钮分配成功';
+            }else if($result == 0){
+                $this->result['status'] = 95;
+                $this->result['msg'] = '没有任何数据被修改';
+            }else{
+                $this->result['status'] = 96;
+                $this->result['msg'] = '按钮分配失败';
+            }
+
+            $this->returnAjax();
+
+
+        }else{
+            //当前角色
+            $role_id = input('role_id/d',0);
+            $moduleIds = $this->systemModel->getModuleWithRole($role_id);
+            //模块
+            $res = $this->systemModel->getModuleTree();
+
+            foreach($res as $key=>$val){
+                if(strpos($moduleIds,(string)$val['module_id']) === false){
+                    unset($res[$key]);
+                    continue;
+                }
+                $prefix = '';
+                for($i = 0; $i < $val['level'] - 1; $i++){
+                    $prefix .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                }
+                $res[$key]['module_name'] = $prefix . $res[$key]['module_name'];
+            }
+
+            if($res){
+                $res = $this->assignYet($role_id,$res);
+                $this->assign('data',$res);
+            }
+            //dump($res);die;
+
+            $this->assign('role_id',$role_id);
+
+            return $this->fetch('/system/rolePrevb');
         }
-        //dump($res);die;
-
-        $this->assign('role_id',$role_id);
-
-        return $this->fetch('/index/rolePrevb');
     }
+
     //获取相应模块的按钮
     public function getButtonOfRoleAjax()
     {
-        $request = $this->request;
-        $role_id = $request->param('role_id') ? intval($request->param('role_id')) : 0;
+        $role_id = input('role_id/d',0);
         if(!$role_id){
-            $res['state'] = 99;
-            $res['msg'] = '角色Id为空';
-            return json($res);
+            $this->result['status'] = 99;
+            $this->result['msg'] = '角色ID为空';
+            $this->returnAjax();
         }
-        $module_id = $request->param('module_id') ? intval($request->param('module_id')) : 0;
+        $module_id = input('module_id/d',0);
         if(!$module_id){
-            $res['state'] = 98;
-            $res['msg'] = '模块id为空';
-            return json($res);
+            $this->result['status'] = 98;
+            $this->result['msg'] = '模块id为空';
+            $this->returnAjax();
         }
-        $condition = $this->condition;
-        $condition['table'] = 'module';
-        $condition['field'] = 'button_id';
-        $condition['where']['module_id'] = $module_id;
 
         //获取改模块的所有按钮id
-        $sysModel = $this->systemModel;
-        $button_ids = $sysModel->getOne($condition)['button_id'];
+        $button_ids = $this->systemModel->getButtonWithModule($module_id);
 
         if($button_ids){
-            //获取按钮详细信息
-            $condition['table'] = 'button';
-            $condition['field'] = '*';
-            $condition['where']['button_id'] = ['in',$button_ids];
-            unset($condition['where']['module_id']);
-            $buttons = $sysModel->getAll($condition);
+            $where['button_id'] = ['in',$button_ids];
+            $buttons = $this->systemModel->getButtonList($where);
         }else{
             $buttons = [];
         }
+
         //获取当前角色在模块下拥有的按钮
         $result = $this->setYet($role_id,$module_id,$buttons);
         if($result){
             $buttons = $result;
         }
 
-        $res['state'] = 100;
-        $res['msg'] = '请求成功';
-        $res['data'] = $buttons;
-        return json($res);
+        $this->result['status'] = 100;
+        $this->result['msg'] = '获取成功';
+        $this->result['data'] = $buttons;
+        $this->returnAjax();
     }
 
     //从所有模块中标记出已有的按钮
     public function assignYet($role_id,$module)
     {
-        $sysModel = $this->systemModel;
-        $condition = $this->condition;
-
-        $condition['table'] = 'role';
-        $condition['field'] = 'button_json';
-        $condition['where']['role_id'] = $role_id;
-        $button_json = $sysModel->getOne($condition)['button_json'];
+        $button_json = $this->systemModel->getButtonJson($role_id);
 
         //该用户没有button_json,那么所有的value值都不存在
         if(!$button_json){
@@ -923,13 +877,8 @@ class System extends Common{
         if(!$buttons){
             return [];
         }
-        $sysModel = $this->systemModel;
-        $condition = $this->condition;
-        //获取当前角色在模块下拥有的按钮
-        $condition['table'] = 'role';
-        $condition['where']['role_id'] = $role_id;
-        $condition['field'] = 'button_json';
-        $button_json = $sysModel->getOne($condition)['button_json'];
+
+        $button_json = $this->systemModel->getButtonJson($role_id);
         $allButton = json_decode($button_json,true);
 
         if($allButton){
@@ -969,71 +918,5 @@ class System extends Common{
             return false;
         }
     }
-
-    //正式修改role的button_json
-    public function rolePrevbAjax()
-    {
-        $request = $this->request;
-        $role_id = $request->param('role_id') ? intval($request->param('role_id')) : 0;
-        if(!$role_id){
-            $res['state'] = 99;
-            $res['msg'] = '角色id不存在';
-            return $res;
-        }
-        $moduleArray = $_POST['modules'] ? $_POST['modules'] : [];
-        if(!$moduleArray){
-            $res['state'] = 98;
-            $res['msg'] = '模块id组为空';
-            return $res;
-        }
-        $buttonArray = $_POST['buttons'] ? $_POST['buttons'] : [];
-        if(!$buttonArray){
-            $res['state'] = 97;
-            $res['msg'] = '按钮组为空';
-            return $res;
-        }
-
-        $button_json = [];
-
-        foreach($moduleArray as $key=>$val){
-            if($buttonArray[$key]){
-                //该模块下呗选择的按钮不为空
-                $button_json[$val] = explode(',',$buttonArray[$key]);
-            }
-        }
-
-        if(!$button_json){
-            $button_json = '';
-        }else{
-            $button_json = json_encode($button_json);
-        }
-
-        $condition = $this->condition;
-        $condition['table'] = 'role';
-        $condition['where']['role_id'] = $role_id;
-        $condition['data']['button_json'] = $button_json;
-
-        $sysModel = $this->systemModel;
-        $result = $sysModel->getUpd($condition);
-        if($result){
-            $res['state'] = 100;
-            $res['msg'] = '修改成功';
-            return $res;
-        }else{
-            $res['state'] = 96;
-            $res['msg'] = '修改失败';
-            return $res;
-        }
-    }
-
-
-
-
-    //这里是seo
-    public function seo()
-    {
-        return '这里是seo';
-    }
-
 
 }
