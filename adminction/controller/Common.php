@@ -134,6 +134,34 @@ class Common extends Controller
         }
     }
 
+    //获取六位随机字符串
+    function getSalt()
+    {
+        $arr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+        $count = 0;
+        $salt = '';
+        while ($count < 6) {
+            $salt .= $arr[rand(0, count($arr) - 1)];
+            $count++;
+        }
+        return $salt;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     //公共ajax方法，可用于删除，更改单个字段
@@ -249,6 +277,8 @@ class Common extends Controller
                         }
                     }
                 }
+                //TODO
+                //删除子模块
                 Db::name('role')->where(['role_id'=>$val['role_id']])->update(['module_id'=>implode(',', $moduleArray)]);
             }else if($buttons){
                 $buttonArray = json_decode($val['button_json'],true);
@@ -264,91 +294,6 @@ class Common extends Controller
                 Db::name('role')->where(['role_id'=>$val['role_id']])->update(['module_id'=>json_encode($buttonArray)]);
             }
         }
-    }
-
-    //树状分类for模块
-    public function treeForModule($data, $pid, $level)
-    {
-        static $array = [];
-        $level++;
-        foreach ($data as $key => $val) {
-            if ($val['module_pid'] == $pid) {
-                $px = (($level - 1) * 30) . "px";
-                $val['module_name'] = '<span style="margin-left: ' . $px . ';"></span>' . $val['module_name'];
-                $array[] = $val;
-                $this->treeForModule($data, $val['module_id'], $level);
-            }
-        }
-        return $array;
-    }
-
-    //树状分类for模块（用在添加和修改框里）/（更加通用）
-    public function treeForModuleTwo($data, $pid, $level)
-    {
-        static $array = [];
-        $level++;
-        foreach ($data as $key => $val) {
-            if ($val['module_pid'] == $pid) {
-                $px = '';
-                for ($i = 0; $i < $level - 1; $i++) {
-                    $px .= '&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;';
-                }
-                $px .= '<img src="__PUBLIC__/admin/img/down.png" style="width: 20px;margin-right: 5px;margin-top: -5px;"/>';
-                $val['module_name'] = $px . $val['module_name'];
-                $array[] = $val;
-                $this->treeForModuleTwo($data, $val['module_id'], $level);
-            }
-        }
-        return $array;
-    }
-
-    public function treeForModuleThree($data, $pid, $level)
-    {
-        static $array = [];
-        $level++;
-        foreach ($data as $key => $val) {
-            if ($val['module_pid'] == $pid) {
-                $px = '';
-                for ($i = 0; $i < $level - 1; $i++) {
-                    $px .= '&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;';
-                }
-                $val['module_name'] = $px . '<input type="checkbox" lay-skin="primary">' . $val['module_name'];
-                $array[] = $val;
-                $this->treeForModuleThree($data, $val['module_id'], $level);
-            }
-        }
-        return $array;
-    }
-
-    public function treeForModuleFour($data, $pid, $level)
-    {
-        static $array = [];
-        $level++;
-        foreach ($data as $key => $val) {
-            if ($val['module_pid'] == $pid) {
-                $px = '';
-                for ($i = 0; $i < $level - 1; $i++) {
-                    $px .= '&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;&nbsp&nbsp;';
-                }
-                $val['module_name'] = $px . $val['module_name'];
-                $array[] = $val;
-                $this->treeForModuleFour($data, $val['module_id'], $level);
-            }
-        }
-        return $array;
-    }
-
-    //获取六位随机字符串
-    function getSalt()
-    {
-        $arr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-        $count = 0;
-        $salt = '';
-        while ($count < 6) {
-            $salt .= $arr[rand(0, count($arr) - 1)];
-            $count++;
-        }
-        return $salt;
     }
 
 
