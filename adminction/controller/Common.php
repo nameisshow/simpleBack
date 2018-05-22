@@ -146,12 +146,12 @@ class Common extends Controller
         }
         if($type != 'delete'){
             if (!$data) {
-                $this->result['status'] = 95;
+                $this->result['status'] = 98;
                 $this->result['msg'] = '请指定操作键和值';
                 $this->returnAjax();
             }
             if (!$condition[0]) {
-                $this->result['status'] = 94;
+                $this->result['status'] = 97;
                 $this->result['msg'] = '键为空';
                 $this->returnAjax();
             }
@@ -162,22 +162,22 @@ class Common extends Controller
             //}
         }
         if (!$table) {
-            $this->result['status'] = 98;
+            $this->result['status'] = 96;
             $this->result['msg'] = '请指定操作表格';
             $this->returnAjax();
         }
         if (!$condition) {
-            $this->result['status'] = 97;
+            $this->result['status'] = 95;
             $this->result['msg'] = '请指定操作主键和主键值';
             $this->returnAjax();
         }
         if (!$condition[0]) {
-            $this->result['status'] = 96;
+            $this->result['status'] = 94;
             $this->result['msg'] = '主键为空';
             $this->returnAjax();
         }
         if (!$condition[1]) {
-            $this->result['status'] = 96;
+            $this->result['status'] = 93;
             $this->result['msg'] = '主键值为空';
             $this->returnAjax();
         }
@@ -187,19 +187,83 @@ class Common extends Controller
             $where[$condition[0]] = $condition[1];
         }
         if($type == 'delete'){
-            $result = Db::name($table)->where($where)->delete();
+            Db::startTrans();
+            try{
+                $result = Db::name($table)->where($where)->delete();
+                $this->delRoleField($where);
+                //提交事务
+                Db::commit();
+
+            }catch(\Exception $e){
+                //回滚事务
+                Db::rollback();
+
+                $this->result['status'] = 92;
+                $this->result['msg'] = '删除失败';
+                $this->returnAjax();
+            }
+
         }else{
             $result = Db::name($table)->where($where)->update($data);
         }
+
 
         if ($result) {
             $this->result['status'] = 100;
             $this->result['msg'] = '操作成功';
         } else {
-            $this->result['status'] = 99;
+            $this->result['status'] = 91;
             $this->result['msg'] = '操作失败';
         }
         $this->returnAjax();
+    }
+
+    //删除button和模块时顺便将role中module_id和button_json删掉
+    protected function delRoleField($where){
+
+        $where['module_id'] && ($modules = $where['module_id']);
+        $where['button_id'] && ($buttons = $where['button_id']);
+
+        if($modules){
+            if(!is_array($modules)){
+                $modules = [$modules];
+            }
+        }else if($buttons){
+            if(!is_array($buttons)){
+                $buttons = [$buttons];
+            }
+        }else{
+            return false;
+        }
+
+        $roles = Db::name('role')
+            ->select();
+
+        foreach($roles as $key=>$val){
+            if($modules){
+                $moduleArray = explode(',', $val['module_id']);
+                foreach($moduleArray as $k=>$v){
+                    foreach($modules as $kk=>$vv){
+                        if(in_array($vv, $moduleArray)){
+                            unset($moduleArray[$k]);
+                        }
+                    }
+                }
+                Db::name('role')->where(['role_id'=>$val['role_id']])->update(['module_id'=>implode(',', $moduleArray)]);
+            }else if($buttons){
+                $buttonArray = json_decode($val['button_json'],true);
+                foreach($buttonArray as $key=>$val){
+                    foreach($val as $k=>$v){
+                        foreach($buttons as $kk=>$vv){
+                            if(in_array($vv, $buttonArray)){
+                                unset($buttonArray[$key][$k]);
+                            }
+                        }
+                    }
+                }
+                Db::name('role')->where(['role_id'=>$val['role_id']])->update(['module_id'=>json_encode($buttonArray)]);
+            }
+        }
     }
 
     //树状分类for模块
