@@ -13,6 +13,6 @@ use think\Request;
 class Article extends Common{
     public function articleList()
     {
-        return '这里是'.__FUNCTION__;
+        return '这里是ARTICLE';
     }
 }
