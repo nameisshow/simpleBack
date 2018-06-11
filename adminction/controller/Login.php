@@ -37,6 +37,7 @@ class Login extends Controller{
     {
         $request = $this->request;
         $username = $request->param('username') ? trim($request->param('username')) : '';
+        error_log(print_r($username,1));
         if(!$username){
             $res['state'] = 99;
             $res['msg'] = '用户名为空';
